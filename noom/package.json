@@ -4,9 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --exec babel-node src/server.js",
+    "prebuild": "rimraf ./dist",
+    "build": "babel src -d dist",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "dosimpact <ypd03008@gmail.com> (https://github.com/DosImpact)",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.5",
+    "@babel/node": "^7.16.5",
+    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/runtime": "^7.16.5",
+    "nodemon": "^2.0.15",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {
+    "express": "^4.17.2",
+    "pug": "^3.0.2"
+  }
 }
