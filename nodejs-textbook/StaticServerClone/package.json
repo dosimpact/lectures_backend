@@ -2,9 +2,9 @@
   "name": "staticserverclone",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start:dev": "babel-node src/app.js",
+    "start:dev": "cross-env NODE_ENV=development nodemon --exec babel-node src/app.js",
     "build": "babel src -d build"
   },
   "keywords": [],
@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@babel/cli": "^7.17.6",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.0",
     "express": "^4.17.3"
   },
   "devDependencies": {
