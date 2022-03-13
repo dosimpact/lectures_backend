@@ -19,4 +19,5 @@ export const uploadMiddleware = ({ volumeRootDir }) =>
         cb(null, file.originalname);
       },
     }),
-  }).single('file');
+    limits: { fileSize: 200 * 1024 * 1024 },
+  });

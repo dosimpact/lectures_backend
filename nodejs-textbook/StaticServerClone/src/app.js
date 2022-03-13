@@ -1,16 +1,26 @@
 import '../config/env.js';
 import express from 'express';
 import process from 'process';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import helmet from 'helmet';
 import staticController from './static/static.controller.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use('/static', staticController);
+// === Common middleware ===
+app.use(logger('dev'));
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(helmet());
 
-app.get('/file', (req, res) => {
-  res.sendFile();
-});
+// === Controller ===
+app.use('/static', staticController);
 
 // 404 Not Found
 app.use((req, res, next) => {

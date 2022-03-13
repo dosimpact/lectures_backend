@@ -26,7 +26,7 @@ yarn add nodemon
                 balel-node는 스크립트는 app.js를 트랜스파일링 후  런타임에 돌리는 node 프로세스이다.
 
 // express
-yarn add express cors body-parser cookie-parser 
+yarn add express cors body-parser cookie-parser morgan helmet
 yarn add multer
 ```
 
