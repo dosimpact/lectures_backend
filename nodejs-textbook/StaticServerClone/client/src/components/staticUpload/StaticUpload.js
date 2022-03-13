@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import UploadSection from './section/UploadSection';
 import DirectorySection from './section/DirectorySection';
+import { UploadContext } from './uploadContext';
 
 const StaticUploadViewModel = () => {
   return <StaticUploadView />;
@@ -8,10 +9,12 @@ const StaticUploadViewModel = () => {
 
 const StaticUploadView = () => {
   return (
-    <StaticUploadViewStyled>
-      <DirectorySection />
-      <UploadSection />
-    </StaticUploadViewStyled>
+    <UploadContext.Provider value={{ currentDirectory: '/' }}>
+      <StaticUploadViewStyled>
+        <DirectorySection />
+        <UploadSection />
+      </StaticUploadViewStyled>
+    </UploadContext.Provider>
   );
 };
 
