@@ -2,7 +2,9 @@
 
 .env
 .env.dev
+/**/.env**
 /**/volume
+/**/ecosystem*
 
 # dependencies
 /node_modules

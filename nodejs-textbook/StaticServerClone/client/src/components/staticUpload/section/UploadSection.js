@@ -8,7 +8,6 @@ const UploadSection = () => {
   const onChange = async (e) => {
     // const base64 = await fileToBase64(e.target.files[0]);
     const uploadedFiles = e.target.files;
-    console.log('==>uploadedFiles', uploadedFiles);
     setFiles(uploadedFiles);
   };
   const onSubmit = async (e) => {
@@ -16,7 +15,7 @@ const UploadSection = () => {
     const formData = new FormData();
     Array.from(files)?.map((file) => formData.append('file', file));
     try {
-      const host = 'http://localhost:4000/static/';
+      const host = `${process.env.REACT_APP_SERVER_URI}/api/static/`;
       const res = await axios.post(host, formData, {
         headers: { 'content-type': 'multipart/form-data' },
       });

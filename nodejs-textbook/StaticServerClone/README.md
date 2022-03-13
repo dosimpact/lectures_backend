@@ -36,3 +36,11 @@ yarn add multer
 ### express root error handling - Fail
 
 - 서버 요청시 - 비동기 함수 호출을 await 하지 않고, 클라 요청이 끝나고 나중에 비동기 처리에서 오류가 나온 경우
+
+
+### frontend filedownload 
+
+- 필수 기능 : image serve, file download
+- a 태그에 download 붙여도 , dialog를 통한 다운로드가 안되는 경우 있다. 
+- 서버측에서 header 를 설정 -> https://stackoverflow.com/questions/50694881/how-to-download-file-in-react-js 
+- blob concept

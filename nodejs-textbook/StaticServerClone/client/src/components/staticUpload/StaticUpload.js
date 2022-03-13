@@ -2,19 +2,23 @@ import styled from 'styled-components';
 import UploadSection from './section/UploadSection';
 import DirectorySection from './section/DirectorySection';
 import { UploadContext } from './uploadContext';
+import { useState } from 'react';
 
 const StaticUploadViewModel = () => {
-  return <StaticUploadView />;
+  const [currentDirectory, setCurrentDirectory] = useState('/');
+  return (
+    <UploadContext.Provider value={{ currentDirectory, setCurrentDirectory }}>
+      <StaticUploadView />
+    </UploadContext.Provider>
+  );
 };
 
 const StaticUploadView = () => {
   return (
-    <UploadContext.Provider value={{ currentDirectory: '/' }}>
-      <StaticUploadViewStyled>
-        <DirectorySection />
-        <UploadSection />
-      </StaticUploadViewStyled>
-    </UploadContext.Provider>
+    <StaticUploadViewStyled>
+      <DirectorySection />
+      <UploadSection />
+    </StaticUploadViewStyled>
   );
 };
 
