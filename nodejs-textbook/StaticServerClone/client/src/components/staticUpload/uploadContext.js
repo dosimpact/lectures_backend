@@ -45,7 +45,8 @@ export const useChangeDirectory = () => {
 export const useDonwloadFile = () => {
   const { currentDirectory } = useContext(UploadContext);
   const handleDownload = (suffix) => {
-    const requestUrl = hostStaticUrl + normalize(currentDirectory + suffix);
+    const requestUrl =
+      hostStaticUrl + normalize(join(currentDirectory, suffix));
     DownloadDiaglog(requestUrl);
   };
   return { handleDownload };
