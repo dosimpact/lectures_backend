@@ -1,12 +1,14 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
-import { GET, hostStaticUrl } from '../../api/apis';
+import { GET, hostStaticUrl, DownloadDiaglog } from '../../api/apis';
+import axios from 'axios';
+import { basename, normalize } from 'path-browserify';
+
+console.log('-->', basename('http://localhost:4000/api/static/sample'));
 
 export const UploadContext = React.createContext({
   currentDirectory: '/',
   setCurrentDirectory: () => {},
 });
-
-const normalizeUrl = (str) => String(str).replace(/[/]{2,}/g, '/');
 
 export const useFetchDirectory = () => {
   const { currentDirectory } = useContext(UploadContext);
@@ -31,6 +33,8 @@ export const useFetchDirectory = () => {
   return { data, dirList, fileList };
 };
 
+export const useSubscribeCurrentDirectory = () => {};
+
 export const useChangeDirectory = () => {
   const { currentDirectory, setCurrentDirectory } = useContext(UploadContext);
   const handleChangeDirectory = useCallback(
@@ -40,22 +44,17 @@ export const useChangeDirectory = () => {
       }
       setCurrentDirectory(currentDirectory + prefix);
     },
-    [currentDirectory],
+    [currentDirectory, setCurrentDirectory],
   );
   return { handleChangeDirectory };
 };
+
 export const useDonwloadFile = () => {
   const { currentDirectory, setCurrentDirectory } = useContext(UploadContext);
   const handleDownload = (prefix) => {
-    const aTag = document.createElement('a');
-    const href = hostStaticUrl + normalizeUrl(currentDirectory + prefix);
-    console.log('-->href', href);
-    aTag.href = hostStaticUrl + currentDirectory + prefix;
-    aTag.style = 'display:none';
-    aTag.download = hostStaticUrl + currentDirectory + prefix;
-    document.body.appendChild(aTag);
-    aTag.click();
-    document.body.removeChild(aTag);
+    const requestUrl = hostStaticUrl + normalize(currentDirectory + prefix);
+    console.log('-->requestUrl', requestUrl);
+    DownloadDiaglog(requestUrl);
   };
   return { handleDownload };
 };

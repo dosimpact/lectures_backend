@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start:dev": "cross-env NODE_ENV=development nodemon --exec node src/app.js",
-    "start:prod":"cross-env NODE_ENV=production node dist/app.js",
-    "prebuild":"npx rimraf -dist",
+    "start:prod": "cross-env NODE_ENV=production node dist/app.js",
+    "prebuild": "npx rimraf -dist",
     "build": "babel src -d dist"
   },
   "keywords": [],
@@ -15,6 +15,7 @@
   "dependencies": {
     "@babel/cli": "^7.17.6",
     "body-parser": "^1.19.2",
+    "content-disposition": "^0.5.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",

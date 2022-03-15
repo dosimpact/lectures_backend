@@ -5,12 +5,13 @@ import {
   useFetchDirectory,
   useChangeDirectory,
 } from '../uploadContext';
+import axios from 'axios';
 
 const DirectorySection = () => {
   const { dirList, fileList } = useFetchDirectory();
   const { handleChangeDirectory } = useChangeDirectory();
   const { handleDownload } = useDonwloadFile();
-  console.log('-->', dirList, fileList);
+  // console.log('-->', dirList, fileList);
   return (
     <DirectorySectionView
       dirList={dirList}
@@ -35,14 +36,11 @@ const DirectorySectionView = ({
       <div className="utilIcons"></div>
       <div className="directoryRoutes"></div>
       <div className="currentDirectory">
-        <a href="http://localhost:4000/api/static/007070.jpg" target="_blank">
-          http://localhost:4000/api/static/007070.jpg
-        </a>
-        <ul>
+        <ul className="directoryList">
           {dirList.map((dir, idx) => {
             return (
               <li
-                className="dirList"
+                className="directoryItem"
                 key={dir.name + idx}
                 onClick={() => handleChangeDirectory(dir.name)}
               >
@@ -51,11 +49,11 @@ const DirectorySectionView = ({
             );
           })}
         </ul>
-        <ul>
+        <ul className="fileList">
           {fileList.map((file, idx) => {
             return (
               <li
-                className="fileList"
+                className="fileItem"
                 key={file.name + idx}
                 onClick={() => handleDownload(file.name)}
               >
@@ -75,12 +73,18 @@ const DirectorySectionViewStyled = styled.section`
   .directoryRoutes {
   }
   .currentDirectory {
-    .dirList {
+    .directoryList {
+      margin: 0;
+    }
+    .fileList {
+      margin: 0;
+    }
+    .directoryItem {
       color: blue;
       text-decoration: underline;
       cursor: pointer;
     }
-    .fileList {
+    .fileItem {
       color: blue;
       text-decoration: underline;
       cursor: pointer;
