@@ -6,8 +6,9 @@ import {
   useChangeDirectory,
   UploadContext,
 } from '../uploadContext';
-import { POST } from '../../../api/apis';
 import { join } from 'path-browserify';
+import { IconDownload } from '../../icons';
+import { POST, SERVER_URI_STATIC } from '../../../apis';
 
 const useMkdir = () => {
   const { fetchData } = useFetchDirectory();
@@ -100,12 +101,16 @@ const DirectorySectionView = ({
         <ul className="fileList">
           {fileList.map((file, idx) => {
             return (
-              <li
-                className="Item fileItem"
-                key={file.name + idx}
-                onClick={() => handleDownload(file.name)}
-              >
-                <div href="">[File] {file.name}</div>
+              <li className="Item fileItem" key={file.name + idx}>
+                <div onClick={() => handleDownload(file.name)}>
+                  <IconDownload />
+                </div>
+                <a
+                  className="anchor"
+                  href={SERVER_URI_STATIC + join(currentDirectory, file.name)}
+                >
+                  {file.name}
+                </a>
               </li>
             );
           })}
@@ -129,7 +134,7 @@ const DirectorySectionViewStyled = styled.section`
       margin: 0;
     }
     .Item {
-      color: blue;
+      color: #361500; //#00c4a7;
       text-decoration: underline;
       cursor: pointer;
       font-size: 20px;
@@ -137,6 +142,12 @@ const DirectorySectionViewStyled = styled.section`
     .directoryItem {
     }
     .fileItem {
+      display: flex;
+      align-items: center;
+      margin: 5px 0px;
+      .anchor {
+        margin-left: 10px;
+      }
     }
   }
 `;

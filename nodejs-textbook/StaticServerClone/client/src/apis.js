@@ -9,9 +9,10 @@ const fetchBlob = async (url) => {
   });
 };
 
-export const host = process.env.REACT_APP_SERVER_URI || 'http://localhost:4000';
+export const SERVER_URI =
+  process.env.REACT_APP_SERVER_URI || 'http://localhost:4000';
 
-export const hostStaticUrl = `${host}/api/static`;
+export const SERVER_URI_STATIC = `${SERVER_URI}/api/static`;
 
 export const DownloadDiaglog = async (requestUrl) => {
   try {
@@ -29,19 +30,19 @@ export const DownloadDiaglog = async (requestUrl) => {
 
 export const GET = {
   readDirectory: async (subDir) => {
-    return axios.get(`${host}` + normalize(`/api/static/${subDir}`));
+    console.log('-->subDir', subDir);
+    return axios.get(`${SERVER_URI}` + normalize(`/api/static/${subDir}`));
   },
 };
 
 export const POST = {
   uploadFile: async (formData, suffix) => {
     const requestUrl = normalize(`/api/static/${suffix}`);
-    const host = `${process.env.REACT_APP_SERVER_URI}`;
-    return axios.post(host + requestUrl, formData, {
+    return axios.post(SERVER_URI + requestUrl, formData, {
       headers: { 'content-type': 'multipart/form-data' },
     });
   },
   makeDirectory: async (subDir) => {
-    return axios.post(`${host}` + normalize(`/api/static/${subDir}`));
+    return axios.post(`${SERVER_URI}` + normalize(`/api/static/${subDir}`));
   },
 };

@@ -7,7 +7,7 @@
     "start:dev": "cross-env NODE_ENV=development nodemon --exec node src/app.js",
     "start:prod": "cross-env NODE_ENV=production node dist/app.js",
     "prebuild": "npx rimraf -dist",
-    "build": "babel src -d dist"
+    "build": "babel src -d dist && cd ./client && npm run build"
   },
   "keywords": [],
   "author": "dosimpact <ypd03008@gmail.com> (https://github.com/DosImpact)",

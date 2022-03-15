@@ -20,6 +20,10 @@ export const readDirectory = async ({
     withFileTypes: true
   });
   const result = files.map(file => {
+    if (file.isDirectory()) {
+      file.name = file.name + '/';
+    }
+
     return { ...file,
       isDirectory: file.isDirectory()
     };

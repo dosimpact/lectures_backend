@@ -1,6 +1,6 @@
 import { useContext, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { POST } from '../../../api/apis';
+import { POST } from '../../../apis';
 import { UploadContext } from '../uploadContext';
 
 const UploadSection = () => {

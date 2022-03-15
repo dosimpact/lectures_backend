@@ -21,6 +21,9 @@ export const readDirectory = async ({ url, volumeRootDir }) => {
 
   const files = await fs.readdir(requestUrl, { withFileTypes: true });
   const result = files.map((file) => {
+    if (file.isDirectory()) {
+      file.name = file.name + '/';
+    }
     return { ...file, isDirectory: file.isDirectory() };
   });
   return { ls: result, requestUrl: url };

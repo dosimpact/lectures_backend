@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
-import { GET, hostStaticUrl, DownloadDiaglog } from '../../api/apis';
+import { GET, SERVER_URI_STATIC, DownloadDiaglog } from '../../apis';
 import { normalize, join } from 'path-browserify';
 
 export const UploadContext = React.createContext({
@@ -46,7 +46,7 @@ export const useDonwloadFile = () => {
   const { currentDirectory } = useContext(UploadContext);
   const handleDownload = (suffix) => {
     const requestUrl =
-      hostStaticUrl + normalize(join(currentDirectory, suffix));
+      SERVER_URI_STATIC + normalize(join(currentDirectory, suffix));
     DownloadDiaglog(requestUrl);
   };
   return { handleDownload };

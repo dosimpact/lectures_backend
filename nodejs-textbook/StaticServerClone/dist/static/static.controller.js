@@ -3,7 +3,25 @@ import path from 'path';
 import { uploadMiddleware } from './static.middleware.js';
 import { readDirectory, makeDirectory } from './static.service.js';
 const router = express.Router();
-const volumeRootDir = process.env.VOLUME_ROOT_DIR ? process.env.VOLUME_ROOT_DIR : path.join(process.cwd(), '/volume');
+const volumeRootDir = process.env.VOLUME_ROOT_DIR ? process.env.VOLUME_ROOT_DIR : path.join(process.cwd(), '/volume'); // 경로에 파일 리소스가 있는 경우
+
+router.use('/', express.static(volumeRootDir, {
+  setHeaders: function (res, path) {// res.setHeader('Content-Disposition', 'attachment');
+  }
+})); // GET
+// 경로가 디렉터리인 경우
+
+router.get('/*', async (req, res) => {
+  try {
+    const result = await readDirectory({
+      url: req.url,
+      volumeRootDir
+    });
+    res.send(result);
+  } catch (error) {
+    res.send('Cannot Access Directory');
+  }
+});
 
 const singleUploadContoller = (req, res, next) => {
   const {
@@ -38,24 +56,9 @@ const singleUploadErrorHandler = (err, req, res, next) => {
   }
 
   next();
-}; // 경로에 파일 리소스가 있는 경우
-
-
-router.use('/', express.static(volumeRootDir)); // GET
-// 경로가 디렉터리인 경우
-
-router.get('/*', async (req, res) => {
-  try {
-    const result = await readDirectory({
-      url: req.url,
-      volumeRootDir
-    });
-    res.send(result);
-  } catch (error) {
-    res.send('Cannot Access Directory');
-  }
-}); // POST
+}; // POST
 // 파일을 업로드 한다.
+
 
 router.post('/*', uploadMiddleware({
   volumeRootDir

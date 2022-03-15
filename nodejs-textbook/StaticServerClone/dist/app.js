@@ -8,17 +8,16 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import helmet from 'helmet';
 import staticController from './static/static.controller.js';
+import contentDisposition from 'content-disposition';
 const app = express();
 const PORT = process.env.PORT || 4000; // === Common middleware ===
 
 app.use(logger('common'));
 app.use(cors());
 app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  }),
-);
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(cookieParser());
 app.use(helmet()); // === Controller ===
 
