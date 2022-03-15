@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
-import axios from 'axios';
+import { useContext, useMemo, useState } from 'react';
 import styled from 'styled-components';
+import { POST } from '../../../api/apis';
+import { UploadContext } from '../uploadContext';
 
 const UploadSection = () => {
+  const { currentDirectory } = useContext(UploadContext);
   const [files, setFiles] = useState([]);
   const [uploadedResult, setUploadedResult] = useState([]);
   const onChange = async (e) => {
@@ -15,10 +17,7 @@ const UploadSection = () => {
     const formData = new FormData();
     Array.from(files)?.map((file) => formData.append('file', file));
     try {
-      const host = `${process.env.REACT_APP_SERVER_URI}/api/static/`;
-      const res = await axios.post(host, formData, {
-        headers: { 'content-type': 'multipart/form-data' },
-      });
+      const res = await POST.uploadFile(formData, currentDirectory);
       setUploadedResult(res.data);
     } catch (error) {
     } finally {

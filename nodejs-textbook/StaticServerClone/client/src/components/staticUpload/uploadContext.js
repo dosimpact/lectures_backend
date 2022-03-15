@@ -1,9 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { GET, hostStaticUrl, DownloadDiaglog } from '../../api/apis';
-import axios from 'axios';
-import { basename, normalize } from 'path-browserify';
-
-console.log('-->', basename('http://localhost:4000/api/static/sample'));
+import { normalize, join } from 'path-browserify';
 
 export const UploadContext = React.createContext({
   currentDirectory: '/',
@@ -15,22 +12,21 @@ export const useFetchDirectory = () => {
   const [data, setData] = useState();
   const [dirList, setDirList] = useState([]);
   const [fileList, setFileList] = useState([]);
-
+  const fetchData = useCallback(async () => {
+    const res = await GET.readDirectory(currentDirectory);
+    setData(res.data);
+    if (res.data?.ls) {
+      const ls = res.data?.ls;
+      setDirList(ls.filter((file) => file.isDirectory));
+      setFileList(ls.filter((file) => !file.isDirectory));
+    }
+  }, [currentDirectory]);
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await GET.readDirectory(currentDirectory);
-      setData(res.data);
-      if (res.data?.ls) {
-        const ls = res.data?.ls;
-        setDirList(ls.filter((file) => file.isDirectory));
-        setFileList(ls.filter((file) => !file.isDirectory));
-      }
-    };
     fetchData();
     return () => {};
-  }, [currentDirectory]);
+  }, [fetchData]);
 
-  return { data, dirList, fileList };
+  return { data, dirList, fileList, fetchData };
 };
 
 export const useSubscribeCurrentDirectory = () => {};
@@ -38,11 +34,8 @@ export const useSubscribeCurrentDirectory = () => {};
 export const useChangeDirectory = () => {
   const { currentDirectory, setCurrentDirectory } = useContext(UploadContext);
   const handleChangeDirectory = useCallback(
-    (prefix) => {
-      if (!String(prefix).startsWith('/')) {
-        prefix = '/' + prefix;
-      }
-      setCurrentDirectory(currentDirectory + prefix);
+    (suffix) => {
+      setCurrentDirectory(join(currentDirectory, suffix));
     },
     [currentDirectory, setCurrentDirectory],
   );
@@ -50,10 +43,9 @@ export const useChangeDirectory = () => {
 };
 
 export const useDonwloadFile = () => {
-  const { currentDirectory, setCurrentDirectory } = useContext(UploadContext);
-  const handleDownload = (prefix) => {
-    const requestUrl = hostStaticUrl + normalize(currentDirectory + prefix);
-    console.log('-->requestUrl', requestUrl);
+  const { currentDirectory } = useContext(UploadContext);
+  const handleDownload = (suffix) => {
+    const requestUrl = hostStaticUrl + normalize(currentDirectory + suffix);
     DownloadDiaglog(requestUrl);
   };
   return { handleDownload };

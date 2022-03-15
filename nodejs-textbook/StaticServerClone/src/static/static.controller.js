@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import { uploadMiddleware } from './static.middleware.js';
 import { readDirectory, makeDirectory } from './static.service.js';
-import contentDisposition from 'content-disposition';
 const router = express.Router();
 
 const volumeRootDir = process.env.VOLUME_ROOT_DIR
