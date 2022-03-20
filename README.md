@@ -1,1 +1,1 @@
-# lectures_nodejs
+# lectures_backend
