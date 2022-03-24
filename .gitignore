@@ -1,5 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# pi-kafka
+/**/*.tar
+/**/confluent-7.0.1
 
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 /**/Volumn
 /**/node_modules
 
