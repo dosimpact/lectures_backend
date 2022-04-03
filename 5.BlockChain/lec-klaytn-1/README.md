@@ -24,7 +24,35 @@ KAS ( Klay API Service ) 	https://www.klaytnapi.com/ko/landing/main
 
 ## Solidity with Klaytn IDE  
 
+Step1. deploy contract   
+
+- write smart contract (.sol).   
+- deploy using truffle.js to baobao test net.   
+- output is file   
+  ( ABI - application binary interface , Contract Address ). 
 
 ```
+// - install truffle globally
+npm install -g truffle@5.1.23
 
+// - test sol
+// truffle test ./test/1_initial_migration.sol
+// truffle test ./test/1_initial_migration.sol
+
+// - contarct deploy
+// truffle deploy --network klaytn
+
+// - re deploy
+// truffle deploy --compile-all --reset --network klaytn
 ```
+
+Step2. interaction with user wallet 
+
+- login by keyStore + password
+- save wallet instance. 
+
+Step3. interaction with smart contract
+
+- fetch file - ABL, Address 
+-  make smartcontract instnace using caver.js. 
+
