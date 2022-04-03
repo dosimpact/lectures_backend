@@ -1,1 +1,0 @@
-// truffle.js config for klaytn.

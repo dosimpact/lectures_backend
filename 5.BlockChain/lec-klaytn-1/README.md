@@ -40,10 +40,10 @@ npm install -g truffle@5.1.23
 // truffle test ./test/1_initial_migration.sol
 
 // - contarct deploy
-// truffle deploy --network klaytn
+// npx truffle deploy --network klaytn
 
 // - re deploy
-// truffle deploy --compile-all --reset --network klaytn
+// npx truffle deploy --compile-all --reset --network klaytn
 ```
 
 Step2. interaction with user wallet 
