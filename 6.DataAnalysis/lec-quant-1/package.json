@@ -1,0 +1,16 @@
+{
+  "name": "lec-quant-1",
+  "version": "1.0.0",
+  "description": "``` virtualenv pip_env --python=python3.9 source pip_env/bin/activate deactivate ```",
+  "main": "index.js",
+  "scripts": {
+    "virtualenv:create":"virtualenv pip_env --python=python3.9",
+    "virtualenv:activate":"source pip_env/bin/activate",
+    "pip:export":"pip freeze > requirements.txt",
+    "pip:install":"pip install -r ./requirements.txt",
+    "start:test":"python ./src/test.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
