@@ -2,6 +2,9 @@
 /**/*.tar
 /**/confluent-7.0.1
 
+# .vscode
+.vscode 
+.ipynb_checkpoints
 
 /**/*.gz
 /**/*.tar.gz
