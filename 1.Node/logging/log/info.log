@@ -1,0 +1,6 @@
+[2022-04-27T13:31:53.513] [INFO] testCategory - info test
+[2022-04-27T13:32:06.817] [INFO] testCategory - info test
+[2022-04-27T13:32:06.824] [ERROR] testCategory - error test
+[2022-04-27T13:33:34.239] [INFO] testCategory - info test
+[2022-04-27T13:33:34.247] [WARN] testCategory - warn test
+[2022-04-27T13:33:34.247] [ERROR] testCategory - error test
