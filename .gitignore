@@ -1,3 +1,6 @@
+# log
+/**/*.log
+
 # pi-kafka
 /**/*.tar
 /**/confluent-7.0.1
