@@ -1,20 +1,4 @@
-# log
-/**/*.log
-
-# pi-kafka
-/**/*.tar
-/**/confluent-7.0.1
-
-# .vscode
-.vscode 
-.ipynb_checkpoints
-
-/**/*.gz
-/**/*.tar.gz
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-/**/Volumn
-/**/node_modules
 
 # dependencies
 /node_modules
@@ -37,4 +21,3 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-nodejs-textbook/StaticServerClone/.babelrc
