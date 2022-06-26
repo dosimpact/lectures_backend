@@ -9,9 +9,15 @@
     - [주석](#주석)
     - [코드](#코드)
 - [Web4 - Express Session & Auth](#web4---express-session--auth)
-  - [session-counter 구현 및 정리](#session-counter-구현-및-정리)
+  - [eg-1) session-counter 구현 및 정리](#eg-1-session-counter-구현-및-정리)
     - [정리](#정리)
     - [코드](#코드-1)
+  - [eg-2) b-session-lifecycle 세션 + CURD](#eg-2-b-session-lifecycle-세션--curd)
+    - [정리](#정리-1)
+    - [코드](#코드-2)
+  - [eg-3) c-session-redis 세션 + 레디스 저장소](#eg-3-c-session-redis-세션--레디스-저장소)
+    - [정리](#정리-2)
+    - [코드](#코드-3)
   - [secure 고려 요소](#secure-고려-요소)
 
 
@@ -221,7 +227,7 @@ ref : https://www.youtube.com/watch?v=IWFMEwmcp44&list=PLuHgQVnccGMCHjWIDStjaZA2
 ref : https://opentutorials.org/course/3400/21840
 
 
-## session-counter 구현 및 정리
+## eg-1) session-counter 구현 및 정리
 
 ### 정리
 
@@ -348,6 +354,231 @@ const bootstrap = async () => {
 bootstrap();
 
 ```
+
+## eg-2) b-session-lifecycle 세션 + CURD
+
+### 정리
+
+```js
+/*
+
+eg) sid 식별자는, 세션아이디, 세션쿠키의 값, 데이터 저장시 키값으로 사용
+    uqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW // -->req.session.id
+s%3AuqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW.ukibxI5rE5M1OWUESFnam8LWKsc3R%2FkdXWOobpNy7UQ // -->cookie.connect.sid
+uqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW.json // --> sessions FileStore
+
+eg) loggout > session.destory 으로 세션 Store의 sid 객체는 없어져도, 
+사용자가 계속 쿠키를 가지고 있는 경우도 있다. 
+
+
+? access-token 을 가지고 , login 여부 확인 API 호출 
+성공하면, session 객체 생성 - 
+refresh는 재접속시, session이 있다면 - access-token 연장 
+그렇다면, session 객체는 언제 만료되는가 ? 혹은 영구인가?
+
+
+x. 세션의 만료와 쿠키의 만료
+case 1, 쿠키가 먼저 만료된 경우 
+- 서버에 세션은 살아 있고, 세션쿠키가없는 브라우저는 로그인 실패
+- 브라우저단에서 유통기한이 지난 쿠키는 알아서 제거.
+
+
+case 2, 세션이 먼저 만료된 경우
+- 브라우저가 가진 쿠키는, 유통기한이 지남 - 다시 세션을 생성
+- 세션미들웨어는, 유통기한이 지난 쿠키를 제거해준다.  
+
+*/
+
+```
+
+### 코드
+
+```js
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const FileStore = require("session-file-store")(session);
+
+const PORT = 4000;
+
+const CONFIG = {
+  COOKIE_MAX_AGE_10_SEC: 1000 * 10, // 10sec
+  COOKIE_MAX_AGE_20_SEC: 1000 * 20, // 20sec
+  COOKIE_MAX_AGE_ONE_HOUR: 1000 * 60 * 60, // 1hour
+  ACCESS_TOKEN: "ACCESS_TOKEN",
+};
+
+const bootstrap = async () => {
+  const app = express();
+  app.use(cookieParser());
+  app.use(
+    session({
+      secret: "dodo",
+      resave: false,
+      saveUninitialized: false,
+      store: new FileStore({
+        ttl: 10, // 10sec
+      }),
+      cookie: {
+        maxAge: 1000 * 5,
+      },
+    })
+  );
+
+  // 3. session revalidate
+  app.get("/", (req, res) => {
+    if (req.session["access-token"]) {
+      res.send({ loggedIn: true });
+    } else {
+      res.send({ loggedIn: false });
+    }
+  });
+  // 1. session in
+  // cookie maxAge 1 hour
+  app.get("/login", (req, res) => {
+    req.session["access-token"] = CONFIG.ACCESS_TOKEN; // later, for auth server
+    res.send({ ok: true });
+  });
+
+  // 2. session out
+  app.get("/logout", (req, res) => {
+    req.session.destroy();
+    res.send({ ok: true });
+  });
+
+  // error : dont touch direct sid cookie option
+  // 4. session cookie , refresh
+  // cookie maxAge 1 hour
+  //   app.get("/refresh", (req, res) => {
+  //     if (req.cookies["connect.sid"]) {
+  //       res.cookie("connect.sid", req.session.cookie, {
+  //         maxAge: CONFIG.COOKIE_MAX_AGE_ONE_HOUR,
+  //       });
+  //       res.send({ ok: true });
+  //     } else {
+  //       res.send({ ok: false });
+  //     }
+  //   });
+
+  app.listen(PORT, () => {
+    console.log(`✨ server is running at http://localhost:${PORT}`);
+  });
+};
+bootstrap();
+
+
+```
+
+## eg-3) c-session-redis 세션 + 레디스 저장소
+
+### 정리
+
+```js
+
+case1 : redis ttl 과 cookie maxAge 둘 다 설정한 경우
+    - redis 의 ttl은 cookie 의 maxAge와 일치 된다.
+    - (redis 에 ttl을 설정해도 오버라이드 된다.)
+
+case2 : redis의 ttl 만 설정한 경우 
+
+    - cookie 의 만료시간은 없다.
+    - redis의 ttl은 카운트다운이 되고 있다. 
+    - 사용자가 재요청시 redis의 ttl은 refresh 된다.  
+    - 하지만 ttl이 만료되면, 사용자는 유통기한이 지난 쿠키로 계속 요청하게 된다. (로그아웃됨)
+
+case3 : cookie maxAge만 설정한 경우
+    - case 1 과 동일 
+    
+```
+### 코드 
+
+
+```js
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const redis = require("redis");
+const FileStore = require("session-file-store")(session);
+const RedisStore = require("connect-redis")(session);
+
+const PORT = 4000;
+
+const CONFIG = {
+  COOKIE_MAX_AGE_10_SEC: 1000 * 10, // 10sec
+  COOKIE_MAX_AGE_20_SEC: 1000 * 20, // 20sec
+  COOKIE_MAX_AGE_ONE_HOUR: 1000 * 60 * 60, // 1hour
+  ACCESS_TOKEN: "ACCESS_TOKEN",
+};
+
+const bootstrap = async () => {
+  const app = express();
+
+  // redis-cli -h 221.153.254.18 -p 27000 -a dosimpact
+  const client = redis.createClient({
+    url: "redis://:dosimpact@221.153.254.18:27000",
+    legacyMode: true,
+  });
+  client.on("connect", () => console.log("✔️ Redis Session connected"));
+  await client.connect().catch(console.error);
+
+  app.use(cookieParser());
+  app.use(
+    session({
+      secret: "dodo",
+      resave: false,
+      saveUninitialized: false,
+      store: new RedisStore({ client, logErrors: true, ttl: 30 }),
+      cookie: {
+        // maxAge: 1000 * 60,
+      },
+    })
+  );
+
+  // 3. session revalidate
+  app.get("/", (req, res) => {
+    if (req.session["access-token"]) {
+      res.send({ loggedIn: true });
+    } else {
+      res.send({ loggedIn: false });
+    }
+  });
+  // 1. session in
+  // cookie maxAge 1 hour
+  app.get("/login", (req, res) => {
+    req.session["access-token"] = CONFIG.ACCESS_TOKEN; // later, for auth server
+    res.send({ ok: true });
+  });
+
+  // 2. session out
+  app.get("/logout", (req, res) => {
+    req.session.destroy();
+    res.send({ ok: true });
+  });
+
+  // error : dont touch direct sid cookie option
+  // 4. session cookie , refresh
+  // cookie maxAge 1 hour
+  //   app.get("/refresh", (req, res) => {
+  //     if (req.cookies["connect.sid"]) {
+  //       res.cookie("connect.sid", req.session.cookie, {
+  //         maxAge: CONFIG.COOKIE_MAX_AGE_ONE_HOUR,
+  //       });
+  //       res.send({ ok: true });
+  //     } else {
+  //       res.send({ ok: false });
+  //     }
+  //   });
+
+  app.listen(PORT, () => {
+    console.log(`✨ server is running at http://localhost:${PORT}`);
+  });
+};
+bootstrap();
+
+
+```
+
+
 
 ## secure 고려 요소
 
