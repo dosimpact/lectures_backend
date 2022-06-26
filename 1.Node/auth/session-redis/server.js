@@ -11,7 +11,7 @@ const PORT = 3000;
 
 const bootstrap = async () => {
   const client = redis.createClient({
-    url: "redis://:dosimpact@221.153.254.18:27000",
+    url: "redis://:dosimpact@221.153.254.18:27000", // deprecated
   });
   client.on("connect", () => console.log("connected"));
   client.on("error", (err) => console.log("Redis Client Error", err));

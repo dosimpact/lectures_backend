@@ -9,8 +9,8 @@
     - [주석](#주석)
     - [코드](#코드)
 - [Web4 - Express Session & Auth](#web4---express-session--auth)
-  - [session-counter 구현 및 이론](#session-counter-구현-및-이론)
-    - [이론](#이론)
+  - [session-counter 구현 및 정리](#session-counter-구현-및-정리)
+    - [정리](#정리)
     - [코드](#코드-1)
   - [secure 고려 요소](#secure-고려-요소)
 
@@ -221,11 +221,11 @@ ref : https://www.youtube.com/watch?v=IWFMEwmcp44&list=PLuHgQVnccGMCHjWIDStjaZA2
 ref : https://opentutorials.org/course/3400/21840
 
 
-## session-counter 구현 및 이론
+## session-counter 구현 및 정리
 
-### 이론 
+### 정리
 
-```
+```js
 
 1.yarn add express-session session-file-store
 
@@ -242,6 +242,9 @@ ZsNExJnlcYSduAloYUpvaUDZyNTU3fl0.json 에 다음 정보가 포함된다.
 
       {"cookie":{"originalMaxAge":null,"expires":null,"httpOnly":true,"path":"/"},"__lastAccess":1655983955101,"num":16}
 
+express-session 미들웨어는 , 쿠키에 전송된 sid(sesion-id)를 읽고 서버측 session store를 불러서 req.session 을 만들어 준다.  
+또한 req.session 이 변화되면, 이를 store에 저장하도록 한다.  
+
 
 x. 세션 callback 함수  & 라이프 싸이클 
 
@@ -256,7 +259,7 @@ Session.destroy(callback) : 세션 아웃 ( 로그아웃 )
 
 x. 세션 정보 
   
-  req.session.id : 아이디 점보
+  req.session.id : 아이디 정보
 
 x. 세션 쿠키 정보 
 
@@ -268,30 +271,31 @@ x. 세션 쿠키 정보
 x. 세션으로 로그인/로그아웃 구현
 
 1.로그인
-post - id,password 로그인 요청 
-정보가 일치하면, 세션 발급 및 세션쿠키 전송하기 
+  post - id,password 로그인 요청 
+  정보가 일치하면, 세션 발급 및 세션쿠키 전송하기 
 
 2. 재검증
-클라이언트는 세션쿠키를 전송  
-req.session 에 정보가 채워져 있는지 확인 
-없다면 다시 로그인으로 유도,
-있다면 재검증 완료 , 세션객체에서 사용자 정보를 획득 
+  클라이언트는 세션쿠키를 전송  
+  req.session 에 정보가 채워져 있는지 확인 
+  없다면 다시 로그인으로 유도,
+  있다면 재검증 완료 , 세션객체에서 사용자 정보를 획득 
 
 3. 세션 연장 
 
-클라이언트가 세션 쿠키 전송
-쿠키 시간 리프래시 
-세션 객체(TTL)등 연장
+  클라이언트가 세션 쿠키 전송
+  쿠키 시간 리프래시 
+  세션 객체(TTL)등 연장
 
 4. 로그아웃
-세션아이디를 획득 및 세션 객체 파괴 
+  세션아이디를 획득 및 세션 객체 파괴 
 
 Q. ? 로그인 안한 사용자에 대해서, 세션정보를 기록해두어야 하나?
-- req.session 객체를 건드리지 않으면 된다. 
+  - req.session 객체를 건드리지 않으면 된다. 
 
 ```
 
-### 코드 
+### 코드  
+
 ```js
 const express = require("express");
 const cookieParser = require("cookie-parser");

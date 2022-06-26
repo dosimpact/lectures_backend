@@ -78,7 +78,10 @@ Session.destroy(callback) : 세션 아웃 ( 로그아웃 )
 
 x. 세션 정보 
   
-  req.session.id : 아이디 점보
+  req.session.id : 아이디 정보,
+    우선 use.session을 타면, 누구나 발급받는 아이디  
+    이 아이디를 바탕으로 세션정보를 store에 저장.  
+    
 
 x. 세션 쿠키 정보 
 
