@@ -3,7 +3,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const FileStore = require("session-file-store")(session);
 
-const PORT = 4000;
+const PORT = 2000;
 /*
 Exampel) session counter 
 */
@@ -19,6 +19,7 @@ const bootstrap = async () => {
       saveUninitialized: false, // 세션이 필요하기 전까지는 세션을 구동하지 않는다.
       // if true, 세션이 필요없더라도, 빈 object객체로 세션을 처리한다.
       store: new FileStore(),
+      // 세션은 내부적으로 쿠키를 사용하고, 이에 대한 옵션을 여기서 지정할 수 있다.
       // cookie: {
       //   secure: true,
       //   httpOnly: true,

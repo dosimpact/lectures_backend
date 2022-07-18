@@ -1,8 +1,12 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const redis = require("redis");
 const FileStore = require("session-file-store")(session);
+const RedisStore = require("connect-redis")(session);
+const MongoStore = require("connect-mongo");
 
+// redis connect-redis
 const PORT = 2000;
 
 const CONFIG = {
@@ -14,18 +18,18 @@ const CONFIG = {
 
 const bootstrap = async () => {
   const app = express();
+
   app.use(cookieParser());
   app.use(
     session({
       secret: "dodo",
       resave: false,
       saveUninitialized: false,
-      store: new FileStore({
-        ttl: 10, // 10sec
-      }),
+      store: MongoStore.create({
+        mongoUrl: "mongodb://dosimpact:123123@dosimpact.iptime.org:24000",
+      }), //new RedisStore({ client, logErrors: true, ttl: 30 }),
       cookie: {
-        maxAge: 1000 * 5, // 보통 서버의 세션 기간과, 쿠키의 기간을 일치 시킨다.
-        // 불일치 시켜도 로그인에 크게 문제는 없다.
+        // maxAge: 1000 * 60,
       },
     })
   );
@@ -33,7 +37,17 @@ const bootstrap = async () => {
   // 3. session revalidate
   app.get("/", (req, res) => {
     if (req.session["access-token"]) {
-      res.send({ loggedIn: true });
+      console.log("session : ", req.session);
+      if (!req?.session?.num) {
+        req.session.num = 1;
+      } else {
+        req.session.num = req.session.num + 1;
+        if (req.session.num >= 10) {
+          req.session.fin = "ok";
+          req.session.num = 1;
+        }
+      }
+      res.send({ loggedIn: true, num: req.session.num });
     } else {
       res.send({ loggedIn: false });
     }
@@ -73,29 +87,18 @@ bootstrap();
 
 /*
 
-eg) sid 식별자는, 세션아이디, 세션쿠키의 값, 데이터 저장시 키값으로 사용
-    uqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW // -->req.session.id
-s%3AuqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW.ukibxI5rE5M1OWUESFnam8LWKsc3R%2FkdXWOobpNy7UQ // -->cookie.connect.sid
-uqyoqVZOvzzqb31aRkF0jd4NV-tEg7lW.json // --> sessions FileStore
+case1 : redis ttl 과 cookie maxAge 둘 다 설정한 경우
+    - redis 의 ttl은 cookie 의 maxAge와 일치 된다.
+    - (redis 에 ttl을 설정해도 오버라이드 된다.)
 
-eg) loggout > session.destory 으로 세션 Store의 sid 객체는 없어져도, 
-사용자가 계속 쿠키를 가지고 있는 경우도 있다. 
+case2 : redis의 ttl 만 설정한 경우 
 
+    - cookie 의 만료시간은 없다.
+    - redis의 ttl은 카운트다운이 되고 있다. 
+    - 사용자가 재요청시 redis의 ttl은 refresh 된다.  
+    - 하지만 ttl이 만료되면, 사용자는 유통기한이 지난 쿠키로 계속 요청하게 된다. (로그아웃됨)
 
-? access-token 을 가지고 , login 여부 확인 API 호출 
-성공하면, session 객체 생성 - 
-refresh는 재접속시, session이 있다면 - access-token 연장 
-그렇다면, session 객체는 언제 만료되는가 ? 혹은 영구인가?
-
-
-x. 세션의 만료와 쿠키의 만료
-case 1, 쿠키가 먼저 만료된 경우 
-- 서버에 세션은 살아 있고, 세션쿠키가없는 브라우저는 로그인 실패
-- 브라우저단에서 유통기한이 지난 쿠키는 알아서 제거.
-
-
-case 2, 세션이 먼저 만료된 경우
-- 브라우저가 가진 쿠키는, 유통기한이 지남 - 다시 세션을 생성
-- 세션미들웨어는, 유통기한이 지난 쿠키를 제거해준다.  
+case3 : cookie maxAge만 설정한 경우
+    - case 1 과 동일 
 
 */

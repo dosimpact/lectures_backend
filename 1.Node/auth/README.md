@@ -5,10 +5,10 @@
   - [6. session cookies vs permanent cookies](#6-session-cookies-vs-permanent-cookies)
   - [7. secure, httponly](#7-secure-httponly)
   - [8 path & domain](#8-path--domain)
-  - [실습 및 정리](#실습-및-정리)
+  - [실습 및 정리 - 1.cookie](#실습-및-정리---1cookie)
     - [주석](#주석)
     - [코드](#코드)
-- [Web4 - Express Session & Auth](#web4---express-session--auth)
+- [Web4 - Express Session & Auth - 2.session](#web4---express-session--auth---2session)
   - [eg-1) session-counter 구현 및 정리](#eg-1-session-counter-구현-및-정리)
     - [정리](#정리)
     - [코드](#코드-1)
@@ -96,7 +96,7 @@ permanent cookies
   test.o2.org, dev.o2.org 등 서브도메인이 test, dev 모두 쿠키가 살아 있다.
 
 
-## 실습 및 정리
+## 실습 및 정리 - 1.cookie
 
 ### 주석
 
@@ -221,7 +221,7 @@ bootstrap();
 ---
 
 
-# Web4 - Express Session & Auth
+# Web4 - Express Session & Auth - 2.session
 
 ref : https://www.youtube.com/watch?v=IWFMEwmcp44&list=PLuHgQVnccGMCHjWIDStjaZA2ZR-jwq-WU&index=2
 ref : https://opentutorials.org/course/3400/21840
@@ -233,26 +233,33 @@ ref : https://opentutorials.org/course/3400/21840
 
 ```js
 
-1.yarn add express-session session-file-store
+1.install
 
-세션아이디는, 쿠키에 포함되어 보내진다. 
-connect.sid : s%3AZsNExJnlcYSduAloYUpvaUDZyNTU3fl0.H6Fqc9veTqNyGmtQJG1Kw%2BgDX%2Bd9tQF6Et4CijSceK8
+yarn add \
+  express-session \
+  session-file-store
 
-eg)
-    Cookie:
+--- 
+
+- 세션아이디는, 쿠키에 포함되어 보내진다. 
+
+  eg) Cookie:
       my-cookie=banana; 
       connect.sid=s%3AZsNExJnlcYSduAloYUpvaUDZyNTU3fl0.H6Fqc9veTqNyGmtQJG1Kw%2BgDX%2Bd9tQF6Et4CijSceK8
 
-세션 파일 스토어를 사용하면
-ZsNExJnlcYSduAloYUpvaUDZyNTU3fl0.json 에 다음 정보가 포함된다. 
+- 세션 파일 스토어를 사용하면 *( 쿠키값에서 s%3A 제외한부분이 파일 이름이 된다.)
+
+  eg) ZsNExJnlcYSduAloYUpvaUDZyNTU3fl0.json 에 다음 정보가 포함된다. 
 
       {"cookie":{"originalMaxAge":null,"expires":null,"httpOnly":true,"path":"/"},"__lastAccess":1655983955101,"num":16}
 
-express-session 미들웨어는 , 쿠키에 전송된 sid(sesion-id)를 읽고 서버측 session store를 불러서 req.session 을 만들어 준다.  
-또한 req.session 이 변화되면, 이를 store에 저장하도록 한다.  
+- express-session 미들웨어는 , 쿠키에 전송된 sid(sesion-id)를 읽고 서버측 session store를 불러서 req.session 을 만들어 준다.  
+- 또한 req.session 이 변화되면, 이를 store에 저장하도록 한다.  
 
 
-x. 세션 callback 함수  & 라이프 싸이클 
+--- 
+
+x. 세션 callback 함수 & 라이프 싸이클 
 
 Session.save(callback) : 세션 인 ( 로그인 ) , 세션정보를 바로 저장한다.
   *req.session 객체에 값을 쓰면, 어차피 sid 발급 및 store에 save 된다.

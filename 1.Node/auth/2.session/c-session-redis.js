@@ -4,8 +4,8 @@ const session = require("express-session");
 const redis = require("redis");
 const FileStore = require("session-file-store")(session);
 const RedisStore = require("connect-redis")(session);
-
-const PORT = 4000;
+// redis connect-redis
+const PORT = 2000;
 
 const CONFIG = {
   COOKIE_MAX_AGE_10_SEC: 1000 * 10, // 10sec
@@ -19,7 +19,7 @@ const bootstrap = async () => {
 
   // redis-cli -h 221.153.254.18 -p 27000 -a dosimpact
   const client = redis.createClient({
-    url: "redis://:dosimpact@221.153.254.18:27000",
+    url: "redis://:dosimpact@221.153.254.18:23000 ",
     legacyMode: true,
   });
   client.on("connect", () => console.log("✔️ Redis Session connected"));
@@ -41,7 +41,17 @@ const bootstrap = async () => {
   // 3. session revalidate
   app.get("/", (req, res) => {
     if (req.session["access-token"]) {
-      res.send({ loggedIn: true });
+      console.log("session : ", req.session);
+      if (!req?.session?.num) {
+        req.session.num = 1;
+      } else {
+        req.session.num = req.session.num + 1;
+        if (req.session.num >= 10) {
+          req.session.fin = "ok";
+          req.session.num = 1;
+        }
+      }
+      res.send({ loggedIn: true, num: req.session.num });
     } else {
       res.send({ loggedIn: false });
     }
