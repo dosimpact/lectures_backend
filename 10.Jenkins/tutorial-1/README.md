@@ -27,6 +27,9 @@ https://github.com/wardviaene/jenkins-docker
 Jenkins 로 빌드 자동화하기 1 - GitHub 에 push 되면 자동 빌드하도록 구성
 https://yaboong.github.io/jenkins/2018/05/14/github-webhook-jenkins/
 
+Jenkins를 사용하여 Docker 이미지를 Docker Hub에 푸시하는 방법
+https://blog.knoldus.com/how-to-push-a-docker-image-to-docker-hub-using-jenkins/
+
 # 1. (concept) 젠킨스, CI, CD, SDLC  
 
 젠킨스
