@@ -1,5 +1,5 @@
 
-- [1. 젠킨스, CI, CD, SDLC](#1-젠킨스-ci-cd-sdlc)
+- [1. (concept) 젠킨스, CI, CD, SDLC](#1-concept-젠킨스-ci-cd-sdlc)
 - [2. 젠킨스 node.js 빌드](#2-젠킨스-nodejs-빌드)
   - [젠킨스 도커 설치](#젠킨스-도커-설치)
   - [젠킨스 접속 후 플러그인, 글로벌 환경 구성](#젠킨스-접속-후-플러그인-글로벌-환경-구성)
@@ -9,14 +9,25 @@
   - [다시 실행](#다시-실행)
   - [확인](#확인)
   - [플러그인 설치](#플러그인-설치)
-  - [cf) 다른 환경에서 안되면 ?](#cf-다른-환경에서-안되면-)
+  - [이슈 트레킹 cf) 다른 환경에서 안되면 ?](#이슈-트레킹-cf-다른-환경에서-안되면-)
+  - [파이프추가 : 도커 빌드 및 허브 이미지 업로드](#파이프추가--도커-빌드-및-허브-이미지-업로드)
+- [4. (concept) Infrastructure as code and automation](#4-concept-infrastructure-as-code-and-automation)
+- [5. Job DSL로 node.js 빌드하기](#5-job-dsl로-nodejs-빌드하기)
+- [6. Job DSL로 node.js 빌드하기 + Docker Build, image Push](#6-job-dsl로-nodejs-빌드하기--docker-build-image-push)
+- [7.(concept) Jenkins Pipeline](#7concept-jenkins-pipeline)
+- [8. Nodejs + Jenkins pipeline](#8-nodejs--jenkins-pipeline)
 
 ## ref)
+
+code resource
 https://github.com/wardviaene/jenkins-course
 https://github.com/wardviaene/docker-demo
 https://github.com/wardviaene/jenkins-docker
 
-# 1. 젠킨스, CI, CD, SDLC  
+Jenkins 로 빌드 자동화하기 1 - GitHub 에 push 되면 자동 빌드하도록 구성
+https://yaboong.github.io/jenkins/2018/05/14/github-webhook-jenkins/
+
+# 1. (concept) 젠킨스, CI, CD, SDLC  
 
 젠킨스
 
@@ -153,7 +164,7 @@ docker ps
 
 CloudBees Docker Build and PublishVersion 설치 
 
-## cf) 다른 환경에서 안되면 ?
+## 이슈 트레킹 cf) 다른 환경에서 안되면 ?
 
 ref) https://postlude.github.io/2020/12/26/docker-in-docker/
 
@@ -167,3 +178,165 @@ ref) https://postlude.github.io/2020/12/26/docker-in-docker/
 - apt-get install -y docker-ce-cli
 그룹권한설정 
 - 컨테이너 내부에 994 아이디로 docker 라는 그룹을 만들고 jenkins 유저를 docker 그룹에도 속하게 함으로써 젠킨스 job에서도 도커 명령어를 사용할 수 있게 되었습니다.
+
+
+## 파이프추가 : 도커 빌드 및 허브 이미지 업로드 
+
+
+
+빌드탭에서 Docker Build and Publish 을 추가
+- Repository Name : ehdudtkatka/nodejs-demo
+   - (username)/(repo_name) 으로 설정하면 이미지이름에 username을 붙여 준다.
+- Registry credentials : username , password 입력  
+
+
+cf) 콘솔 확인 : docker push ehdudtkatka/nodejs-demo
+
+
+---
+
++ 이슈 트래킹, 현재 사용하는 도커 데몬에서, docker login 을 한번 해주자.
+
+  - 어째서인지 jenkins에 넣은 아이디,비밀번호가 작동하지 않는다.  
+    denied: requested access to the resource is denied
+
+
+# 4. (concept) Infrastructure as code and automation
+
+문제점 : 
+- 젠킨스 빌드 파이프라인을 UI에서 작업하면 변경사항을 추적하기 어렵고 실수 발생, 감사문제가 발생  
+- 이러한 빌드 파이프라인 구성을 코드로써 저장하고, 깃에 관리하는것이 해결책  
+- 버전제어를 통해서 감사, 기록, 롤백 등이 가능해진다.  
+
+Jenkins Job DSL
+- 코드는 젠킨스 잡을 생성,업데이트를 자동으로 해준다.  
+- 그루비라는 언어를 통해 정의한다.  
+- 
+
+JenkinsFile
+- 프로젝트의 빌드 파라미터를 번들링 해준다.  
+
+# 5. Job DSL로 node.js 빌드하기
+
+
+이를위해서는 깃 레포를 두개를 만들어야 한다.  
+1. node.js 어플리케이션 레포
+2. Jenkins의 job DSL이 명시된 레포  
+
+그래서 Jenkins에서 jobDSL 레포를 pull 하여, 명시된 스크립트에 따라 잡을 수행한다.
+
+--- 
+
+플러그인 설치 : job dsl
+
+- scm : 버전관리를 어떻게 할 것인가 ?
+- triggers : git을 당겨오는 주기
+- wrappers : nodejs node,npm 명령어 사용을 위함
+- steps : 쉘 스크립트 빌드 과정을 코드로 기록 
+
+```
+job('NodeJS example') {
+    scm {
+        git('https://github.com/wardviaene/docker-demo.git') {  node -> // is hudson.plugins.git.GitSCM
+            node / gitConfigName('DSL User')
+            node / gitConfigEmail('jenkins-dsl@newtech.academy')
+        }
+    }
+    triggers {
+        scm('H/5 * * * *')
+    }
+    wrappers {
+        nodejs('nodejs') // this is the name of the NodeJS installation in 
+                         // Manage Jenkins -> Configure Tools -> NodeJS Installations -> Name
+    }
+    steps {
+        shell("npm install")
+    }
+}
+```
+
+---
+
+빌드 과정에 Process Job DSLs 을 추가하고, 
+- Look on Filesystem : job-dsl/nodejs.groovy 설정하자.   
+
+처음 빌드할때 오류가 나온다. 스크립트를 승인해야하는 일종의 안전장치가 걸려 있다.  
+http://localhost:8000/scriptApproval/ 에 승인을 하자.
+
+
++ 이슈 트래킹) nodejs 이름 비일치
+```
+     wrappers {
+        nodejs('nodejs') // this is the name of the NodeJS installation in 
+                         // Manage Jenkins -> Configure Tools -> NodeJS Installations -> Name
+```
+
+# 6. Job DSL로 node.js 빌드하기 + Docker Build, image Push
+
+Job DSL 빌드과정에, 그루비 파일을 추가하면 된다.
+Process Job DSLs - DSL Scripts
+
+```
+job-dsl/nodejs.groovy
+job-dsl/nodejsdocker.groovy
+```
+
+두개의 스크립트를 추가 했으니, 두개의 잡이 만들어진다.  
+이미 있는 잡은 만들어 지지 않는다.  
+
+- 스크립트 최조 실행 허용  
+- docker hub repo 이름 확인  
+
+
+# 7.(concept) Jenkins Pipeline
+
+젠킨스 파이프라인은 , 코드로 빌드 스탭을 정의해 주는 것.  
+마치 공장의 생산라인에 코드를 넣고, 제조 공정을 따라 결과물이 완성되는 파이프라인을 구축하는 것  
+이런 파이프 라인을 DSL처럼 코드로 정의하는 것이다.  
+
+- 빌드 스탭은 : Complie - test - deploy 등의 일련의 과정  
+- 코드는 Git에서 관리되는 형상이며, 파이프라인의 형상이다.  
+
+즉, 파이프라인 코드와 어플리케이션 코드는 다르다.  
+
+
+젠킨스 파이프라인 vs 젠킨스 잡 DSL  
+- 젠킨스 잡의 유형 중 에는 - 자유유형과 파이프라인이 있다.  
+- 젠킨스 job dsl은 자유유형 및 파이프라인유형 모두 만들 수 있다.  
+
+
+# 8. Nodejs + Jenkins pipeline
+
+각 프로젝트에는 파이프라인을 정의한, Jenkinsfile 이름의 파일을 둔다.  
+
+```js
+misc/Jenkinsfile 에 위치
+
+node { // 젠킨스잡을 실행할 노드 정의(마스터,슬래이브 등 )
+   def commit_id // 변수 정의
+   // 1. 단계
+   stage('Preparation') {
+     checkout scm
+     sh "git rev-parse --short HEAD > .git/commit-id"                        
+     commit_id = readFile('.git/commit-id').trim()
+   }
+   // 2. 단계
+   stage('test') {
+     nodejs(nodeJSInstallationName: 'nodejs') {
+       sh 'npm install --only=dev'
+       sh 'npm test'
+     }
+   }
+   // 3. 단계
+   stage('docker build/push') {
+     docker.withRegistry('https://index.docker.io/v2/', 'dockerhub') {
+       def app = docker.build("wardviaene/docker-nodejs-demo:${commit_id}", '.').push()
+     }
+   }
+}
+```
+
+
+
+
+
