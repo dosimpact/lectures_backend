@@ -1,3 +1,16 @@
+- [Klaytn AddGame BApp](#klaytn-addgame-bapp)
+- [background](#background)
+  - [What is this](#what-is-this)
+- [install](#install)
+  - [config 설정](#config-설정)
+  - [NODE 모듈 설치](#node-모듈-설치)
+  - [스마트 컨트랙트 빌드 및 베포](#스마트-컨트랙트-빌드-및-베포)
+  - [frontend 실행](#frontend-실행)
+  - [강좌 URL](#강좌-url)
+- [Front Logic](#front-logic)
+
+--- 
+
 # Klaytn AddGame BApp
 
 Klaytn AddGame BApp
@@ -55,7 +68,7 @@ cf) 버전정보
 // npx truffle deploy --compile-all --reset --network klaytn
 
 // 
-> truffle migrate --compile-all --reset --network klaytn
+> npx truffle migrate --compile-all --reset --network klaytn
 ```
 
 ## frontend 실행

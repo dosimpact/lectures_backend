@@ -13,7 +13,7 @@ fun sum(x:Int,y:Int):Int {
 }
 fun multiply(x:Int,y:Int) = x*y
 
-// test functions 
+// test functions
 fun main(){
     printMessage("Hello")
     logMessage("Hello")
