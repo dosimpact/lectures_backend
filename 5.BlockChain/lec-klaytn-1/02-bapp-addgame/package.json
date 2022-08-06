@@ -5,7 +5,10 @@
   "main": "truffle-config.js",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server",
+    "sol:deploy":"npx truffle deploy --network klaytn",
+    "sol:re-deploy":"npx truffle deploy --compile-all --reset --network klaytn",
+    "sol:build":"npx truffle build"
   },
   "dependencies": {
     "caver-js": "^1.0.0",

@@ -31,3 +31,134 @@ Klaytn ERC721 BApp
 ## 강좌 URL
 
 > https://www.inflearn.com/course/%ED%81%B4%EB%A0%88%EC%9D%B4%ED%8A%BC-%EB%B8%94%EB%A1%9D%EC%B2%B4%EC%9D%B8-%EC%96%B4%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98-ERC721/dashboard
+
+--- 
+
+
+## 개발 프로세스
+
+contracts development process
+
+    1. contracts 작성 및 가냐슈 테스트 
+    2. contracts klaytn IDE 테스트 및 테스트넷 deploy 
+    3. contracts 메인넷 deploy
+    4. contracts ABI, Address
+    5. FrontEnd Web DApp
+
+
+## install
+
+```
+npm install
+npm install -g ganache-cli 
+
+```
+
+## truffle version check
+
+```
+npx truffle version
+    Truffle v5.5.25 (core: 5.5.25)
+    Ganache v7.4.0
+    Solidity v0.5.16 (solc-js)
+    Node v16.14.2
+    Web3.js v1.7.4
+
+```
+
+## 가나슈 테스트
+
+```
+가나슈 : 솔리디티 네트워크 로컬 테스트 목적
+솔리디티 : 클레이튼과 이더리움 둘 모두 사용 가능 (클레이튼이 이더리움에서 fork)
+
+---
+// 설치
+npm install -g ganache-cli
+
+// 실행
+>ganache-cli
+
+  Ganache CLI v6.12.2 (ganache-core: 2.13.2)
+  ...
+  Listening on 127.0.0.1:8545
+
+
+// local test
+
+// 컴파일 및 베포 (ganache에 )
+npx truffle migrate --compile-all --reset --network ganache
+    - 빌드 결과물 생성
+    - 로컬 가나슈 네트워크에 베포되었음.
+
+// 가나슈 콘솔
+npx truffle console --network ganache
+
+// 스마트컨트랙 인스턴스 가져오기
+truffle(ganache)> instance = await YouTubeThumbnailToken.deployed()
+
+// 스마트컨트랙 확인
+truffle(ganache)> instance.name()
+  'Youtube Thumbnail'
+
+truffle(ganache)> instance.symbol()
+  'YTT'
+
+// 토큰 발행 
+// - from: accounts[1] : 가냐슈의 두번째 계정에서 호출함을 명시
+truffle(ganache)> instance.mintYTT("1234","dodo","2022.08.06","https://ipfs.io",{from: accounts[1]})
+  {
+    tx: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
+    receipt: {
+      transactionHash: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
+      transactionIndex: 0,
+      blockHash: '0xba4523be44959d12edfab370df3dc7fbb4ff3c5b3e5e879de446ab6d3776a828',
+      blockNumber: 13,
+      from: '0xa98d6b25571bab3c4883cce87e9c6bc723cf6f69',
+      to: '0x365828f21ffc407d78eecc3053a6feb67b4ca2f4',
+      gasUsed: 242376,
+      cumulativeGasUsed: 242376,
+      contractAddress: null,
+      logs: [ [Object] ],
+      status: true,
+      logsBloom: '0x000..',
+      rawLogs: [ [Object] ]
+    },
+    logs: [
+      {
+        logIndex: 0,
+        transactionIndex: 0,
+        transactionHash: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
+        blockHash: '0xba4523be44959d12edfab370df3dc7fbb4ff3c5b3e5e879de446ab6d3776a828',
+        blockNumber: 13,
+        address: '0x365828f21ffc407d78EECc3053a6fEb67b4CA2f4',
+        type: 'mined',
+        removed: false,
+        id: 'log_ba1741b7',
+        event: 'Transfer',
+        args: [Result]
+      }
+    ]
+  }
+
+// 총 토큰
+truffle(ganache)> instance.totalSupply();
+BN { negative: 0, words: [ 1, <1 empty item> ], length: 1, red: null }
+
+// 토큰 메타정보
+truffle(ganache)> instance.tokenURI(1);
+'https://ipfs.io'
+
+```
+
+```
+// 바오밥 테스트넷 베포
+// - contarct deploy
+npx truffle deploy --network klaytn
+
+// - re deploy
+npx truffle deploy --compile-all --reset --network klaytn
+
+// cf) only build 
+npx truffle build
+```
