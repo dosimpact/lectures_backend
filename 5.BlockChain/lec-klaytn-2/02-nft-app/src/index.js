@@ -2,7 +2,8 @@ import Caver from "caver-js";
 import { Spinner } from "spin.js";
 
 const config = {
-  rpcURL: "https://api.baobab.klaytn.net:8651",
+  // "http://127.0.0.1:8545"
+  rpcURL:"https://api.baobab.klaytn.net:8651",
 };
 const cav = new Caver(config.rpcURL);
 const yttContract = new cav.klay.Contract(DEPLOYED_ABI, DEPLOYED_ADDRESS);
@@ -10,7 +11,7 @@ const tsContract = new cav.klay.Contract(
   DEPLOYED_ABI_TOKENSALES,
   DEPLOYED_ADDRESS_TOKENSALES
 );
-
+ 
 var ipfsClient = require("ipfs-http-client");
 var ipfs = ipfsClient({
   host: "ipfs.infura.io",
@@ -138,6 +139,7 @@ const App = {
   },
   //#endregion
 
+  // 이미존재하는 토큰여부 확인.
   checkTokenExists: async function () {
     var videoId = $("#video-id").val();
     var result = await this.isTokenAlreadyCreated(videoId);
@@ -491,7 +493,7 @@ const App = {
       }
     }
   },
-
+  /* */
   isTokenAlreadyCreated: async function (videoId) {
     return await yttContract.methods.isTokenAlreadyCreated(videoId).call();
   },

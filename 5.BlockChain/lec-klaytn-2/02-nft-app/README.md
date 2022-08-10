@@ -149,6 +149,18 @@ BN { negative: 0, words: [ 1, <1 empty item> ], length: 1, red: null }
 truffle(ganache)> instance.tokenURI(1);
 'https://ipfs.io'
 
+
+// 뷰 함수 - 토큰의 정보
+truffle(ganache)> instance.getYTT(1)
+Result { '0': 'dodo', '1': '2022.08.06' }
+
+// 뷰 함수 - 이미 제작 여부 
+truffle(ganache)> instance.isTokenAlreadyCreated("1111")
+false
+
+truffle(ganache)> instance.isTokenAlreadyCreated("1234")
+true
+
 ```
 
 ```

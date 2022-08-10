@@ -40,7 +40,7 @@ contract YouTubeThumbnailToken is ERC721Full {
     function getYTT(uint256 _tokenId) public view returns(string memory, string memory) {
       return (youTubeThumbnails[_tokenId].author, youTubeThumbnails[_tokenId].dateCreated);
     }
-  //
+    // 사용가능한 _videoId 인지 조회할 때
     function isTokenAlreadyCreated(string memory _videoId) public view returns (bool) {
       return videoIdsCreated[_videoId] != 0 ? true : false;
     }
