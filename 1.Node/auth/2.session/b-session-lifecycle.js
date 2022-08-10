@@ -24,7 +24,7 @@ const bootstrap = async () => {
         ttl: 10, // 10sec
       }),
       cookie: {
-        maxAge: 1000 * 5, // 보통 서버의 세션 기간과, 쿠키의 기간을 일치 시킨다.
+        maxAge: 1000 * 10, // 보통 서버의 세션 기간과, 쿠키의 기간을 일치 시킨다.
         // 불일치 시켜도 로그인에 크게 문제는 없다.
       },
     })
@@ -54,16 +54,16 @@ const bootstrap = async () => {
   // error : dont touch direct sid cookie option
   // 4. session cookie , refresh
   // cookie maxAge 1 hour
-  //   app.get("/refresh", (req, res) => {
-  //     if (req.cookies["connect.sid"]) {
-  //       res.cookie("connect.sid", req.session.cookie, {
-  //         maxAge: CONFIG.COOKIE_MAX_AGE_ONE_HOUR,
-  //       });
-  //       res.send({ ok: true });
-  //     } else {
-  //       res.send({ ok: false });
-  //     }
-  //   });
+  // app.get("/refresh", (req, res) => {
+  //   if (req.cookies["connect.sid"]) {
+  //     res.cookie("connect.sid", req.session.cookie, {
+  //       maxAge: CONFIG.COOKIE_MAX_AGE_ONE_HOUR,
+  //     });
+  //     res.send({ ok: true });
+  //   } else {
+  //     res.send({ ok: false });
+  //   }
+  // });
 
   app.listen(PORT, () => {
     console.log(`✨ server is running at http://localhost:${PORT}`);

@@ -17,7 +17,7 @@ const CONFIG = {
 const bootstrap = async () => {
   const app = express();
 
-  // redis-cli -h 221.153.254.18 -p 27000 -a dosimpact
+  // redis-cli -h dosimpact.iptime.org -p 23000 -a dosimpact
   const client = redis.createClient({
     url: "redis://:dosimpact@221.153.254.18:23000 ",
     legacyMode: true,
