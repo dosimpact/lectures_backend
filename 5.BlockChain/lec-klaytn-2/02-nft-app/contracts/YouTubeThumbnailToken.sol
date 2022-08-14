@@ -6,7 +6,7 @@ contract YouTubeThumbnailToken is ERC721Full {
 
     struct YouTubeThumbnail {
       string author;
-      string dateCreated;
+      string dateCreated; 
     }
 
     // 토큰 아이디와, YT 정보를 매핑
