@@ -5,7 +5,7 @@
 - [2. 젠킨스 node.js 빌드](#2-젠킨스-nodejs-빌드)
   - [젠킨스 도커 설치](#젠킨스-도커-설치)
   - [젠킨스 접속 후 플러그인, 글로벌 환경 구성](#젠킨스-접속-후-플러그인-글로벌-환경-구성)
-  - [빌드 잡 추가](#빌드-잡-추가)
+  - [빌드 잡 추가 - (practice-eg1)](#빌드-잡-추가---practice-eg1)
 - [3. node.js 빌드 후 도커 허브 업로드](#3-nodejs-빌드-후-도커-허브-업로드)
   - [젠켄스에서 외부 도커명령어를 쓰도록 연동](#젠켄스에서-외부-도커명령어를-쓰도록-연동)
   - [다시 실행](#다시-실행)
@@ -19,7 +19,7 @@
 - [6. Job DSL로 node.js 빌드하기 + Docker Build, image Push](#6-job-dsl로-nodejs-빌드하기--docker-build-image-push)
 - [------](#-------2)
 - [7.(concept) Jenkins Pipeline](#7concept-jenkins-pipeline)
-- [8. Nodejs + Jenkins pipeline](#8-nodejs--jenkins-pipeline)
+- [8. Nodejs + Jenkins pipeline (eg3) jenkins pipeline nodejs build 추가)](#8-nodejs--jenkins-pipeline-eg3-jenkins-pipeline-nodejs-build-추가)
 - [22. 도커 컨테이너 내에서의 구축, 테스트, 실행](#22-도커-컨테이너-내에서의-구축-테스트-실행)
 - [23. 시연: 도커 컨테이너 내에서의 구축, 테스트, 실행](#23-시연-도커-컨테이너-내에서의-구축-테스트-실행)
 
@@ -28,7 +28,9 @@
 code resource
 https://github.com/wardviaene/jenkins-course
 https://github.com/wardviaene/docker-demo
-https://github.com/wardviaene/jenkins-docker
+
+docker 명령어를 사용할 수 있는 jenkins 도커파일
+  https://github.com/wardviaene/jenkins-docker
 
 Jenkins 로 빌드 자동화하기 1 - GitHub 에 push 되면 자동 빌드하도록 구성
 https://yaboong.github.io/jenkins/2018/05/14/github-webhook-jenkins/
@@ -111,7 +113,7 @@ Global Tool Configuration
 - node.js 18버전을 지정하고 저장하여 설치되도록 하자. 
 
 
-## 빌드 잡 추가
+## 빌드 잡 추가 - (practice-eg1)
 
 빌드 잡 추가 : node.js 프로젝트를 빌드하기 위해 잡을 추가하자   
 
@@ -188,6 +190,11 @@ docker ps
 
 CloudBees Docker Build and PublishVersion 설치 
 
+Build
+- Docker Build and Publish
+  - 
+
+
 ## 이슈 트레킹 cf) 다른 환경에서 안되면 ?
 
 ref) https://postlude.github.io/2020/12/26/docker-in-docker/
@@ -257,23 +264,31 @@ JenkinsFile
 - wrappers : nodejs node,npm 명령어 사용을 위함
 - steps : 쉘 스크립트 빌드 과정을 코드로 기록 
 
-```
-job('NodeJS example') {
+```js
+job('NodeJS Docker example - eg2)') {
     scm {
-        git('https://github.com/wardviaene/docker-demo.git') {  node -> // is hudson.plugins.git.GitSCM
+        git('https://github.com/DosImpact/jenkins-node-test.git') {  node -> // is hudson.plugins.git.GitSCM
             node / gitConfigName('DSL User')
-            node / gitConfigEmail('jenkins-dsl@newtech.academy')
+            node / gitConfigEmail('ypd03008@gmail.com')
         }
     }
     triggers {
         scm('H/5 * * * *')
     }
     wrappers {
-        nodejs('nodejs') // this is the name of the NodeJS installation in 
+        nodejs('NodeJS') // this is the name of the NodeJS installation in 
                          // Manage Jenkins -> Configure Tools -> NodeJS Installations -> Name
     }
     steps {
-        shell("npm install")
+        dockerBuildAndPublish {
+            repositoryName('ehdudtkatka/jenkins-node-test')
+            tag('${GIT_REVISION,length=9}')
+            registryCredentials('dockerhub') // credentials의 id값이 된다.
+            forcePull(false)
+            forceTag(false)
+            createFingerprints(false)
+            skipDecorate()
+        }
     }
 }
 ```
@@ -307,7 +322,7 @@ job-dsl/nodejsdocker.groovy
 두개의 스크립트를 추가 했으니, 두개의 잡이 만들어진다.  
 이미 있는 잡은 만들어 지지 않는다.  
 
-- 스크립트 최조 실행 허용  
+- 스크립트 최초 실행 허용  
 - docker hub repo 이름 확인  
 
 
@@ -331,7 +346,7 @@ job-dsl/nodejsdocker.groovy
 - 젠킨스 job dsl은 자유유형 및 파이프라인유형 모두 만들 수 있다.  
 
 
-# 8. Nodejs + Jenkins pipeline
+# 8. Nodejs + Jenkins pipeline (eg3) jenkins pipeline nodejs build 추가)
 
 각 프로젝트에는 파이프라인을 정의한, Jenkinsfile 이름의 파일을 둔다.  
 
@@ -362,9 +377,6 @@ node { // 젠킨스잡을 실행할 노드 정의(마스터,슬래이브 등 )
 }
 ```
 
-
-
-
 # 22. 도커 컨테이너 내에서의 구축, 테스트, 실행
 
 격리된 도커 컨테이너 환경을 구축해서 빌드 및 테스트를 구행.
@@ -374,3 +386,41 @@ node { // 젠킨스잡을 실행할 노드 정의(마스터,슬래이브 등 )
 
 # 23. 시연: 도커 컨테이너 내에서의 구축, 테스트, 실행
 
+```js
+node {
+   def commit_id
+   stage('Preparation') {
+     checkout scm
+     sh "git rev-parse --short HEAD > .git/commit-id"
+     commit_id = readFile('.git/commit-id').trim()
+   }
+   stage('test') {
+    // node:4.6 컨테이너에서 테스트 예정
+     def myTestContainer = docker.image('node:4.6')
+     // 캐시 당겨오기.
+     myTestContainer.pull()
+     // 컨테이너 안에서 실행하는 명령어
+     myTestContainer.inside {
+       sh 'npm install --only=dev'
+       sh 'npm test'
+     }
+     // 이 단계가 끝나면 컨테이너는 폐기된다.
+   }
+   stage('test with a DB') {
+      //  mysql 컨테이너와 함께 두고 테스트를 하려고 한다.
+     def mysql = docker.image('mysql').run("-e MYSQL_ALLOW_EMPTY_PASSWORD=yes") 
+     def myTestContainer = docker.image('node:4.6')
+     myTestContainer.pull()
+     myTestContainer.inside("--link ${mysql.id}:mysql") { // using linking, mysql will be available at host: mysql, port: 3306
+          sh 'npm install --only=dev' 
+          sh 'npm test'                     
+     }                                   
+     mysql.stop()
+   }                                     
+   stage('docker build/push') {            
+     docker.withRegistry('https://index.docker.io/v2/', 'dockerhub') {
+       def app = docker.build("wardviaene/docker-nodejs-demo:${commit_id}", '.').push()
+     }                                     
+   }                                       
+}                                          
+```
