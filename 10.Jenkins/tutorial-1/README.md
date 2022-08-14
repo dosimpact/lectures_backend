@@ -1,5 +1,7 @@
 
 - [1. (concept) 젠킨스, CI, CD, SDLC](#1-concept-젠킨스-ci-cd-sdlc)
+- [terms](#terms)
+- [------](#------)
 - [2. 젠킨스 node.js 빌드](#2-젠킨스-nodejs-빌드)
   - [젠킨스 도커 설치](#젠킨스-도커-설치)
   - [젠킨스 접속 후 플러그인, 글로벌 환경 구성](#젠킨스-접속-후-플러그인-글로벌-환경-구성)
@@ -12,10 +14,14 @@
   - [이슈 트레킹 cf) 다른 환경에서 안되면 ?](#이슈-트레킹-cf-다른-환경에서-안되면-)
   - [파이프추가 : 도커 빌드 및 허브 이미지 업로드](#파이프추가--도커-빌드-및-허브-이미지-업로드)
 - [4. (concept) Infrastructure as code and automation](#4-concept-infrastructure-as-code-and-automation)
+- [------](#-------1)
 - [5. Job DSL로 node.js 빌드하기](#5-job-dsl로-nodejs-빌드하기)
 - [6. Job DSL로 node.js 빌드하기 + Docker Build, image Push](#6-job-dsl로-nodejs-빌드하기--docker-build-image-push)
+- [------](#-------2)
 - [7.(concept) Jenkins Pipeline](#7concept-jenkins-pipeline)
 - [8. Nodejs + Jenkins pipeline](#8-nodejs--jenkins-pipeline)
+- [22. 도커 컨테이너 내에서의 구축, 테스트, 실행](#22-도커-컨테이너-내에서의-구축-테스트-실행)
+- [23. 시연: 도커 컨테이너 내에서의 구축, 테스트, 실행](#23-시연-도커-컨테이너-내에서의-구축-테스트-실행)
 
 ## ref)
 
@@ -34,23 +40,27 @@ https://blog.knoldus.com/how-to-push-a-docker-image-to-docker-hub-using-jenkins/
 
 젠킨스
 
-- 자바로 작성된, CI, CD 오픈소스 툴 
+- 자바로 작성된, CI/CD 오픈소스 툴 
 - 빌드 및 베포 자동화에 사용된다.  
-- 많은 플러그인이 있다.   
+- 많은 플러그인이 있다. 
+  - eg) node.js 런타임 및 버전관리 플러그인
+  - eg) docker hub 베포 플러그인    
 
 
 CI
-- 지속적 통합 : SW 작업 복사본을 공유된 메인라인에 병합하는 라인  
+- 지속적 통합 : SW 작업 복사본을 공유된 메인라인에 병합 
 - 여러 브랜치가 나뉘어져 있는데, 내 작업 브랜치를 나머지 프로젝트와 통합하는 과정  
 
 CD 
 - 지속적 베포 : 안정적으로 짧은 주기로 출시될 수 있도록 하는 방법론  
 
 
-이점 (SDLC)
+CI/CD 이점
 - 오류를 빨리 수정하도록 피드백 루프를 제공해준다. 
 - dev/qa/stage/prod 에 베포를 언제든 할 수 있다
   - SDLC SW Development lifecycle 빠르게 진행
+    *(SDLC - SW Development Life Cycle )
+
 
 CI/CD within the SDLC
 
@@ -58,16 +68,25 @@ CI/CD within the SDLC
 - * 빌드는 브랜치 가져오고, 컴파일 하는 과정
 - * 릴리즈는 패키지 혹은 컨테이너가 결과물이다.   
 
+# terms
+
+SCM(Source Code Management System)
+
+# ------
 
 # 2. 젠킨스 node.js 빌드
 
 ## 젠킨스 도커 설치
+
+* 추후, 젠킨스 안에서 docker 명령어를 쓰도록 연동한다.
 
 // port 8000 : master builder
 // port 50000 ; slave builder
 // volumn : save plugins 
 
 ```
+# 젠킨스만 뛰우는 명령어, 젠킨스에서 도커 명령어를 사용 불가.
+
 docker run -itd \
   -p 50000:50000 \
   -p 8000:8080 \
@@ -83,12 +102,10 @@ ref : https://jktech.tistory.com/41
 ## 젠킨스 접속 후 플러그인, 글로벌 환경 구성
 
 1. 
-
 빌드하려는 프로젝트가 nodejs 이므로 node가 설치되어 있어야 한다. 제공되는 플러그인으로 해결 가능
 - 플러그인 설치 - node.js
 
 2. 
-
 Global Tool Configuration
 - node.js 의 여러 버전을 설치하고 관리할 수 있다.  
 - node.js 18버전을 지정하고 저장하여 설치되도록 하자. 
@@ -98,25 +115,29 @@ Global Tool Configuration
 
 빌드 잡 추가 : node.js 프로젝트를 빌드하기 위해 잡을 추가하자   
 
+1. 소스코드관리탭  
+깃허브 주소를 입력하자. 
+  - https://github.com/wardviaene/docker-demo.git 
+HTTPS 입력을 하게되면 클론하는데 인증이 따로 필요없다 혹은 SSH 키를 추가하여 인증 후 당겨올 수 있다.
 
-1. 소스코드관리탭
-깃허브 주소를 입력하자. HTTPS 입력을 하게되면 클론하는데 인증이 따로 필요없다
-혹은 SSH 키를 추가하여 인증 후 당겨올 수 있다.
 
-2. 빌드환경
+2. 빌드환경  
 
-Provide Node & npm bin/ folder to PATH 에, 글로벌환경구성에서 설치된 nodejs 버전을 선택한다.
+node.js 환경 제공  
+- Provide Node & npm bin/ folder to PATH   
+  - 글로벌환경구성에서 설치된 nodejs 버전을 선택한다.  
 
-3. 
+
+3.  
 빌드 스크립트 추가 
-- 쉘스크립트에 npm install 
+- Execute shell
+  -  npm install 입력
 
+--- 
 
-4. 빌드 결과확인 
+4. 빌드 결과확인  
 /var/jenkins_home/workspace/nodejs-ex 에서 확인이 가능하다.  
 애곳에 쉘 스크립트가 실행된 결과물이 보인다.  
-
-
 
 # 3. node.js 빌드 후 도커 허브 업로드
 
@@ -140,7 +161,6 @@ RUN apt-get -y install sudo
 
 USER jenkins
 ```
-
 docker build -t jenkins-docker .
 
 ## 다시 실행
@@ -162,6 +182,7 @@ docker exec -it jenkins bash
 docker ps
 - jenkins 컨테이너 안에서, host docker 데몬의 명령어를 수행 할 수 있게 되었다.  
 
+--- 
 
 ## 플러그인 설치
 
@@ -184,8 +205,6 @@ ref) https://postlude.github.io/2020/12/26/docker-in-docker/
 
 
 ## 파이프추가 : 도커 빌드 및 허브 이미지 업로드 
-
-
 
 빌드탭에서 Docker Build and Publish 을 추가
 - Repository Name : ehdudtkatka/nodejs-demo
@@ -214,10 +233,11 @@ cf) 콘솔 확인 : docker push ehdudtkatka/nodejs-demo
 Jenkins Job DSL
 - 코드는 젠킨스 잡을 생성,업데이트를 자동으로 해준다.  
 - 그루비라는 언어를 통해 정의한다.  
-- 
 
 JenkinsFile
 - 프로젝트의 빌드 파라미터를 번들링 해준다.  
+
+# ------
 
 # 5. Job DSL로 node.js 빌드하기
 
@@ -291,6 +311,9 @@ job-dsl/nodejsdocker.groovy
 - docker hub repo 이름 확인  
 
 
+
+# ------
+
 # 7.(concept) Jenkins Pipeline
 
 젠킨스 파이프라인은 , 코드로 빌드 스탭을 정의해 주는 것.  
@@ -342,4 +365,12 @@ node { // 젠킨스잡을 실행할 노드 정의(마스터,슬래이브 등 )
 
 
 
+# 22. 도커 컨테이너 내에서의 구축, 테스트, 실행
+
+격리된 도커 컨테이너 환경을 구축해서 빌드 및 테스트를 구행.
+- 각 브랜치마다의 DB컨테이너를 뛰우고 테스트하고 싹 지울 수 있다.  
+- 격리된 환경에서 테스트 및 실행해볼 수 있는 장점.  
+
+
+# 23. 시연: 도커 컨테이너 내에서의 구축, 테스트, 실행
 
