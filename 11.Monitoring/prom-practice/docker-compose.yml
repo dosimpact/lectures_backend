@@ -1,0 +1,34 @@
+version: '1.0.3'
+
+# https://grafana.com/docs/grafana-cloud/quickstart/docker-compose-linux/
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data: {}
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    ports:
+      - '9100:9100'
+    networks:
+      - monitoring
