@@ -12,14 +12,17 @@
   - [확인](#확인)
   - [플러그인 설치](#플러그인-설치)
   - [이슈 트레킹 cf) 다른 환경에서 안되면 ?](#이슈-트레킹-cf-다른-환경에서-안되면-)
+- [eg1) node.js 어플리케이션 프리스타일 빌드](#eg1-nodejs-어플리케이션-프리스타일-빌드)
   - [파이프추가 : 도커 빌드 및 허브 이미지 업로드](#파이프추가--도커-빌드-및-허브-이미지-업로드)
 - [4. (concept) Infrastructure as code and automation](#4-concept-infrastructure-as-code-and-automation)
 - [------](#-------1)
 - [5. Job DSL로 node.js 빌드하기](#5-job-dsl로-nodejs-빌드하기)
+- [eg2) job DSL 추가](#eg2-job-dsl-추가)
 - [6. Job DSL로 node.js 빌드하기 + Docker Build, image Push](#6-job-dsl로-nodejs-빌드하기--docker-build-image-push)
 - [------](#-------2)
 - [7.(concept) Jenkins Pipeline](#7concept-jenkins-pipeline)
-- [8. Nodejs + Jenkins pipeline (eg3) jenkins pipeline nodejs build 추가)](#8-nodejs--jenkins-pipeline-eg3-jenkins-pipeline-nodejs-build-추가)
+- [8. Nodejs + Jenkins pipeline](#8-nodejs--jenkins-pipeline)
+- [eg3) jenkins pipeline nodejs build 추가](#eg3-jenkins-pipeline-nodejs-build-추가)
 - [22. 도커 컨테이너 내에서의 구축, 테스트, 실행](#22-도커-컨테이너-내에서의-구축-테스트-실행)
 - [23. 시연: 도커 컨테이너 내에서의 구축, 테스트, 실행](#23-시연-도커-컨테이너-내에서의-구축-테스트-실행)
 
@@ -211,6 +214,8 @@ ref) https://postlude.github.io/2020/12/26/docker-in-docker/
 - 컨테이너 내부에 994 아이디로 docker 라는 그룹을 만들고 jenkins 유저를 docker 그룹에도 속하게 함으로써 젠킨스 job에서도 도커 명령어를 사용할 수 있게 되었습니다.
 
 
+# eg1) node.js 어플리케이션 프리스타일 빌드
+
 ## 파이프추가 : 도커 빌드 및 허브 이미지 업로드 
 
 빌드탭에서 Docker Build and Publish 을 추가
@@ -309,6 +314,7 @@ http://localhost:8000/scriptApproval/ 에 승인을 하자.
                          // Manage Jenkins -> Configure Tools -> NodeJS Installations -> Name
 ```
 
+# eg2) job DSL 추가
 # 6. Job DSL로 node.js 빌드하기 + Docker Build, image Push
 
 Job DSL 빌드과정에, 그루비 파일을 추가하면 된다.
@@ -346,7 +352,8 @@ job-dsl/nodejsdocker.groovy
 - 젠킨스 job dsl은 자유유형 및 파이프라인유형 모두 만들 수 있다.  
 
 
-# 8. Nodejs + Jenkins pipeline (eg3) jenkins pipeline nodejs build 추가)
+# 8. Nodejs + Jenkins pipeline 
+# eg3) jenkins pipeline nodejs build 추가
 
 각 프로젝트에는 파이프라인을 정의한, Jenkinsfile 이름의 파일을 둔다.  
 
