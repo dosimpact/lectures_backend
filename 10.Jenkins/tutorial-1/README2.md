@@ -3,6 +3,7 @@
   - [Email 통합](#email-통합)
 - [eg4) Slack notification 통합](#eg4-slack-notification-통합)
   - [slack 통합](#slack-통합)
+  - [깃 통합](#깃-통합)
   - [Sonarqube 통합](#sonarqube-통합)
     - [overview](#overview)
     - [sonar qube](#sonar-qube)
@@ -85,7 +86,80 @@ node {
 }
 ```
 
+## 깃 통합
 
+목적 :
+- 젠킨스를 띄우고 빌드 파이프라인 아이템을 모두 구성하는것은 어렵다.
+- 젠킨스 DSL 처럼, 다른 아이템을 언어로 정의하여 출력할 수 있다.
+- 여기서의 방법은 깃 레포의 Jenkins 파이프라인 파일을 스캔하여 아이템을 만들어 주는 것
+
+
+issue) 
+.gradle을 젠킨스도커 안에 만들어준다.
+```
+mkdir -p /var/jenkins_home/.gradle
+chown 1000:1000 /var/jenkins_home/.gradle
+```
+
+issue)
+  args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
+  에서 $HOME이  # echo $HOME > /root 으로 되어 있다.
+  그래서 불륨 마운티 이슈가 발생한다. 
+
+  $HOME   /Users 으로 변경
+  - ? 어떻게 해당 변수를 바꿀 수 있을까?
+
+1. docker-compose.yml 의 변수는 .env에 설정한다.
+
+```
+// eg) REDIS_PASSWORD 을 정의한 env 파일을 명시하여, docker-compose 명령어 수행
+      - redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+      #  docker-compose --env-file ./.env up -d
+      # REDIS_PASSWORD=dosimpact
+```
+
+2. jenkins 도커 안에서 환경변수(리눅스 환경변수)
+
+```
+이슈) 
+# (젠킨스도커안)echo $HOME 
+/root
+
+# (맥북) echo $HOME 
+/Users/dos
+
+젠킨스 도커는, 맥북의 docker 소켓을 이용하는데, $HOME에 대한 환경변수는 젠킨스도커 안쪽을 바라본다. 
+- 얼라인 실패.
+
+Dockerfile에 환경변수를 전달
+- ARG는 Docker 이미지(RUN 등)를 빌드하는 동안에만 사용
+- ENV 값은 컨테이너에서 사용할 수 있지만 Docker 빌드 중 RUN 스타일 명령이 도입된 줄부터 시작합니다
+
+
+결과 
+- jenkins docker 안에서 에코를 찍어보면 다음처럼 나온다. 
+
+1. Dockerfile - ENV HELLO 1234 라고 정의
+# echo $HELLO
+1234
+
+2. docker-compose.yml -     
+  environment:
+    - MY_NAME=${MY_NAME}
+    - MY_AGE="23"
+# echo $MY_AGE
+"23"
+
+3. docker-compose.yml -     
+  environment:
+    - MY_NAME=${MY_NAME} 
+    // MY_NAME=DODO 라고 .env 에 정의
+    // #  docker-compose --env-file ./.env up -d
+
+# echo $MY_NAME
+DODO
+
+```
 
 ## Sonarqube 통합
 
