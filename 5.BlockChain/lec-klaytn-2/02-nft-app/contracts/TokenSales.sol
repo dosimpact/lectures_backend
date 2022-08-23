@@ -2,13 +2,21 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
 
+/* 여러 컨트렉들을 베포해서, R&R을 나누자. 
+- 버전 업에 대한 부담감 감소 
+- 컨트렉을 사고 파는 역할을 가진 컨트렉을 작성해보자.
+- 물론, 모든 함수들을 같은 컨트렉에 넣을 수 있다.
+---
+- ERC721 - NFT, 의 주소를 알아야 한다.  
+- */
 contract TokenSales {
-  ERC721Full public nftAddress;
+  ERC721Full public nftAddress; // ERC721 주소
 
   mapping(uint256 => uint256) public tokenPrice;
 
   constructor(address _tokenAddress) public {
-    nftAddress = ERC721Full(_tokenAddress);
+    nftAddress = ERC721Full(_tokenAddress);// ERC721Full 타입이다.
+    // ERC721Full 생성자에 주소를 넘기면, 해당 주소의 컨트렉의 함수들을 가져온다.
   }
 
   function setForSale(uint256 _tokenId, uint256 _price) public {

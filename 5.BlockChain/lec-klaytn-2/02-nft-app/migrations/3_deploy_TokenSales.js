@@ -3,6 +3,7 @@ const TokenSales = artifacts.require("./TokenSales.sol");
 const fs = require("fs");
 
 module.exports = function (deployer) {
+  // 베포한 nft주소를 생성자로 넘겨서, 세일즈 컨트렉을 베포한다.
   deployer.deploy(TokenSales, YouTubeThumbnailToken.address).then(() => {
     if (TokenSales._json) {
       fs.writeFile(

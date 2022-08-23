@@ -3,18 +3,21 @@ import { Spinner } from "spin.js";
 
 const config = {
   // "http://127.0.0.1:8545"
-  rpcURL:"https://api.baobab.klaytn.net:8651",
+  rpcURL: "https://api.baobab.klaytn.net:8651",
 };
 const cav = new Caver(config.rpcURL);
+
+// 컨트렉 인스턴스 생성
 const yttContract = new cav.klay.Contract(DEPLOYED_ABI, DEPLOYED_ADDRESS);
 const tsContract = new cav.klay.Contract(
   DEPLOYED_ABI_TOKENSALES,
   DEPLOYED_ADDRESS_TOKENSALES
 );
- 
+
+// ipfs config
 var ipfsClient = require("ipfs-http-client");
 var ipfs = ipfsClient({
-  host: "ipfs.infura.io",
+  host: "ipfs.io", // 어떤 노드에 연결할 건가? (공식: ipfs.io )
   port: "5001",
   protocol: "https",
 });
@@ -170,7 +173,9 @@ const App = {
         title,
         `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
       );
+      // 버퍼.form  : 문자열 -> 바이너리
       var res = await ipfs.add(Buffer.from(JSON.stringify(metaData)));
+      // 해쉬값을 반환 받는다, 업로드 시간이 랜덤하다.
       await this.mintYTT(videoId, author, dateCreated, res[0].hash);
       spinner.stop();
     } catch (err) {
@@ -178,43 +183,44 @@ const App = {
       spinner.stop();
     }
   },
-
+  /* contracts - mintYTT */
   mintYTT: async function (videoId, author, dateCreated, hash) {
-    const sender = this.getWallet();
-    const feePayer = cav.klay.accounts.wallet.add(
-      "0x..."
-    );
+    const sender = this.getWallet(); // 로그인한 월렛의 계정
+    const feePayer = cav.klay.accounts.wallet.add("0x..."); // 대납계정 , 컨트렛을 베포한 계정
+    // 월렛에 추가됨.
 
+    //ref : https://docs.klaytn.foundation/dapp/sdk/caver-js/v1.4.1/api-references/caver.klay.accounts#signtransaction
     // using the promise
     const { rawTransaction: senderRawTransaction } =
       await cav.klay.accounts.signTransaction(
         {
-          type: "FEE_DELEGATED_SMART_CONTRACT_EXECUTION",
-          from: sender.address,
-          to: DEPLOYED_ADDRESS,
-          data: yttContract.methods
+          type: "FEE_DELEGATED_SMART_CONTRACT_EXECUTION", // 위임수수료+대납까지
+          from: sender.address, // 센더계정이 호출
+          to: DEPLOYED_ADDRESS, // 베포된 컨트렉 주소
+          data: yttContract.methods // ABI로 인코딩해서 넘겨야 한다.
             .mintYTT(
               videoId,
               author,
               dateCreated,
-              "https://ipfs.infura.io/ipfs/" + hash
+              "https://ipfs.io/ipfs/" + hash // 해쉬를 붙여 업로드 - 사진 보임
             )
             .encodeABI(),
-          gas: "500000",
-          value: cav.utils.toPeb("0", "KLAY"), // payable 타입일때는 1
+          gas: "500000", // 가스비
+          value: cav.utils.toPeb("0", "KLAY"), // payable 타입일때는 1, 아닐때는 0
         },
-        sender.privateKey
+        sender.privateKey //sender의 서명
       );
 
     cav.klay
       .sendTransaction({
-        senderRawTransaction: senderRawTransaction,
-        feePayer: feePayer.address,
+        senderRawTransaction: senderRawTransaction, //서명이 끝난 트랜젝션
+        feePayer: feePayer.address, // 공개주소
       })
       .then(function (receipt) {
+        // 트랜젝션 해쉬를 잘 받았다면, 보여준다.
         if (receipt.transactionHash) {
           console.log("https://ipfs.infura.io/ipfs/" + hash);
-          alert(receipt.transactionHash);
+          alert(receipt.transactionHash); // 영수증 보여줌.
           location.reload();
         }
       });
@@ -223,9 +229,13 @@ const App = {
   displayMyTokensAndSale: async function (walletInstance) {
     var balance = parseInt(await this.getBalanceOf(walletInstance.address));
 
+    // UI 처리, 보유한 토큰에 따른 분기처리
     if (balance === 0) {
       $("#myTokens").text("현재 보유한 토큰이 없습니다");
     } else {
+      // ERC721 Enumeralbe 인터페이스를 통해,
+      // 1. totalSupply - 모든 토큰
+      // 2. tokenOfOwnerByIndex -  특정 계정의 토큰
       var isApproved = await this.isApprovedForAll(
         walletInstance.address,
         DEPLOYED_ADDRESS_TOKENSALES
@@ -233,10 +243,10 @@ const App = {
       for (var i = 0; i < balance; i++) {
         (async () => {
           var tokenId = await this.getTokenOfOwnerByIndex(
-            walletInstance.address,
-            i
+            walletInstance.address, // 계정주소
+            i // 인덱스
           );
-          var tokenUri = await this.getTokenUri(tokenId);
+          var tokenUri = await this.getTokenUri(tokenId); // ipfs 주소 호출
           var ytt = await this.getYTT(tokenId);
           var metadata = await this.getMetadata(tokenUri);
           var price = await this.getTokenPrice(tokenId);
@@ -385,9 +395,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add(
-        "0x..."
-      );
+      const feePayer = cav.klay.accounts.wallet.add("0x...");
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =
@@ -432,9 +440,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add(
-        "0x..."
-      );
+      const feePayer = cav.klay.accounts.wallet.add("0x...");
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =
@@ -493,11 +499,11 @@ const App = {
       }
     }
   },
-  /* */
+  /* contracts - isTokenAlreadyCreated */
   isTokenAlreadyCreated: async function (videoId) {
     return await yttContract.methods.isTokenAlreadyCreated(videoId).call();
   },
-
+  /* ERC721 Metadata JSON schema  */
   getERC721MetadataSchema: function (videoId, title, imgUrl) {
     return {
       title: "Asset Metadata",
@@ -518,15 +524,16 @@ const App = {
       },
     };
   },
-
+  /* contracts - getBalanceOf */
+  // 몇개 토큰을 보유있니?
   getBalanceOf: async function (address) {
     return await yttContract.methods.balanceOf(address).call();
   },
-
+  /* contracts - ERC721Enumerable - tokenOfOwnerByIndex */
   getTokenOfOwnerByIndex: async function (address, index) {
     return await yttContract.methods.tokenOfOwnerByIndex(address, index).call();
   },
-
+  /* contracts -  - tokenURI */
   getTokenUri: async function (tokenId) {
     return await yttContract.methods.tokenURI(tokenId).call();
   },

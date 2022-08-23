@@ -45,6 +45,9 @@ contract ERC721Enumerable is Context, ERC165, ERC721, IERC721Enumerable {
      * @param index uint256 representing the index to be accessed of the requested tokens list
      * @return uint256 token ID at the given index of the tokens list owned by the requested address
      */
+     // balanceOf(owner) 토큰 소유 여부 , 
+     // _ownedTokens[계정주소][가진 토큰들의 아이디값 리스트]
+     // 내가 가진 토큰을 배열에 넣기때문에, 인덱스를 사용하는 것.
     function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256) {
         require(index < balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
         return _ownedTokens[owner][index];
