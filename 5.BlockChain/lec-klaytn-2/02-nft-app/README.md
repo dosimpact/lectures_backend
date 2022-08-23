@@ -175,7 +175,12 @@ false
 truffle(ganache)> instance.isTokenAlreadyCreated("1234")
 true
 
----
+```
+
+--- 
+
+
+```
 // 토큰 세일즈 컨트렉
 truffle(ganache)> instance = await TokenSales.deployed()
 
