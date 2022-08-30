@@ -1,0 +1,18 @@
+version: "0.1.0"
+
+services:
+  vault:
+    image: vault
+    container_name: vault
+    restart: always
+    ports:
+      - "6000:6379"
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    env_file: .compose.env
+    cap_add:
+      - IPC_LOCK
+# docker-compose --env-file ./.compose.env up -d
+# redis-cli -h dosimpact.iptime.org -p 7000 -a dosimpact
