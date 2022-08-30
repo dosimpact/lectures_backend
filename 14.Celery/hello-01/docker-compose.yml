@@ -1,0 +1,17 @@
+version: "0.1.0"
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6000:6379"
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    env_file: .compose.env
+
+# docker-compose --env-file ./.compose.env up -d
+# redis-cli -h dosimpact.iptime.org -p 7000 -a dosimpact

@@ -1,0 +1,14 @@
+{
+  "name": "celery",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "1":"virtualenv pip_env --python=python3.9",
+    "2":"source pip_env/bin/activate",
+    "3":"celery -A workerApp.app worker --loglevel=info"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
