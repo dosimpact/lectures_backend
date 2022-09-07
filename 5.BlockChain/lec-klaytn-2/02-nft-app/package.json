@@ -6,10 +6,10 @@
   "scripts": {
     "web:build": "webpack",
     "web:dev": "webpack-dev-server",
-    "ganache:dev":"ganache-cli",
-    "truffle:migrate:ganache":"npx truffle migrate --compile-all --reset --network ganache",
-    "truffle:migrate:klaytn":"npx truffle migrate --compile-all --reset --network klaytn",
-    "truffle:console:ganache":"npx truffle console --network ganache"
+    "ganache:dev": "ganache-cli",
+    "truffle:migrate:ganache": "npx truffle migrate --compile-all --reset --network ganache",
+    "truffle:migrate:klaytn": "npx truffle migrate --compile-all --reset --network klaytn",
+    "truffle:console:ganache": "npx truffle console --network ganache"
   },
   "dependencies": {
     "caver-js": "^1.0.0",
@@ -20,7 +20,7 @@
   "devDependencies": {
     "copy-webpack-plugin": "^4.6.0",
     "ganache-cli": "^6.12.2",
-    "ipfs-http-client": "32.0.1",
+    "ipfs-http-client": "^57.0.3",
     "openzeppelin-solidity": "^2.3.0",
     "webpack": "^4.7.0",
     "webpack-cli": "^3.1.1",

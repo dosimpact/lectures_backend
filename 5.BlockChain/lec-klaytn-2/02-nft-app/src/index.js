@@ -1,5 +1,6 @@
 import Caver from "caver-js";
 import { Spinner } from "spin.js";
+// import { create } from 'ipfs-http-client';
 
 const config = {
   // "http://127.0.0.1:8545"
@@ -15,12 +16,13 @@ const tsContract = new cav.klay.Contract(
 );
 
 // ipfs config
-var ipfsClient = require("ipfs-http-client");
-var ipfs = ipfsClient({
-  host: "ipfs.io", // 어떤 노드에 연결할 건가? (공식: ipfs.io )
-  port: "5001",
-  protocol: "https",
-});
+// var ipfsClient = require("ipfs-http-client");
+let ipfs = null;
+// ipfsClient({
+//   host: "ipfs.io", // 어떤 노드에 연결할 건가? (공식: ipfs.io )
+//   port: "5001",
+//   protocol: "https",
+// });
 
 const App = {
   auth: {
@@ -33,7 +35,13 @@ const App = {
 
   start: async function () {
     const walletFromSession = sessionStorage.getItem("walletInstance");
+    ipfs = await Ipfs.create({
+      host:"ipfs.io",
+      port:"5001",
+      protocol:"http"
+    })
     if (walletFromSession) {
+      console.log("-->",walletFromSession);
       try {
         cav.klay.accounts.wallet.add(JSON.parse(walletFromSession));
         this.changeUI(JSON.parse(walletFromSession));
@@ -174,9 +182,11 @@ const App = {
         `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
       );
       // 버퍼.form  : 문자열 -> 바이너리
-      var res = await ipfs.add(Buffer.from(JSON.stringify(metaData)));
+      const results = await ipfs.add(Buffer.from(JSON.stringify(metaData)));
       // 해쉬값을 반환 받는다, 업로드 시간이 랜덤하다.
-      await this.mintYTT(videoId, author, dateCreated, res[0].hash);
+      console.log("-->results",results);
+      const hash = results.path;
+      await this.mintYTT(videoId, author, dateCreated, hash);
       spinner.stop();
     } catch (err) {
       console.error(err);
@@ -186,7 +196,7 @@ const App = {
   /* contracts - mintYTT */
   mintYTT: async function (videoId, author, dateCreated, hash) {
     const sender = this.getWallet(); // 로그인한 월렛의 계정
-    const feePayer = cav.klay.accounts.wallet.add("0x..."); // 대납계정 , 컨트렛을 베포한 계정
+    const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f"); // 대납계정 , 컨트렛을 베포한 계정
     // 월렛에 추가됨.
 
     //ref : https://docs.klaytn.foundation/dapp/sdk/caver-js/v1.4.1/api-references/caver.klay.accounts#signtransaction
@@ -395,7 +405,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add("0x...");
+      const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f");
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =
@@ -440,7 +450,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add("0x...");
+      const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f");
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =
@@ -584,7 +594,7 @@ const App = {
 
 window.App = App;
 
-window.addEventListener("load", function () {
+window.addEventListener("load", async function () {
   App.start();
   $("#tabs").tabs().css({ overflow: "auto" });
 });
