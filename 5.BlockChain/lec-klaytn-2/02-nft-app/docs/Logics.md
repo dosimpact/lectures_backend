@@ -1,0 +1,178 @@
+- [logics - contracts](#logics---contracts)
+  - [YouTubeThumbnailToken.sol](#youtubethumbnailtokensol)
+    - [functions](#functions)
+  - [TokenSales.sol](#tokensalessol)
+- [logics contracts client](#logics-contracts-client)
+  - [login wallet](#login-wallet)
+  - [ipfs](#ipfs)
+  - [yttContract-interaction](#yttcontract-interaction)
+  - [tsContract-interaction](#tscontract-interaction)
+
+
+
+# logics - contracts
+
+## YouTubeThumbnailToken.sol
+
+### functions
+
+```
+mintYTT : 토큰 민트 함수
+
+getYTT : 블럭체인의 정보를 불러서 보고 싶을 때
+
+isTokenAlreadyCreated : 사용가능한 _videoId 인지 조회할 때
+```
+
+## TokenSales.sol
+
+```
+setForSale : 토큰 판매 
+
+purchaseToken : 토큰 구매 
+
+removeTokenOnSale : 토큰 판매취소
+```
+
+# logics contracts client
+
+## login wallet 
+
+```js
+// 1. login 
+import Caver from "caver-js";
+const cav = new Caver("https://api.baobab.klaytn.net:8651");
+
+
+// 1.1 get keystore file and password
+const fileReader = new FileReader();
+fileReader.readAsText(event.target.files[0]);
+fileReader.onload = (event) => {
+    // ...validation needed
+    this.auth.keystore = event.target.result;
+};
+
+// 1.2 decrypt privateKey
+const privateKey = 
+    cav.klay.accounts.decrypt(keystoreJSONFile,password).privateKey;
+
+// 1.3 walletInstance add
+const walletInstance = cav.klay.accounts.privateKeyToAccount(privateKey);
+cav.klay.accounts.wallet.add(walletInstance);
+
+// 2. logout
+cav.klay.accounts.wallet.clear();
+
+```
+
+## ipfs 
+
+```js
+// 1. add script 
+  <script src="https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js"></script>
+
+// 2. ipfs create (connection)
+let ipfs = null;
+
+// check public gateway : https://ipfs.github.io/public-gateway-checker/
+ipfs = await Ipfs.create({
+      host:"ipfs.io",
+      port:"5001",
+      protocol:"http"
+    })
+
+// 3. ipfs add
+
+// 버퍼.form  : 문자열 -> 바이너리
+const exampleJSON = {"name":"dodo"};
+const results = await ipfs.add(Buffer.from(JSON.stringify(exampleJSON)));
+// 해쉬값을 반환 받는다, 업로드 시간이 랜덤하다.
+const hash = results.path;
+// await this.mintYTT(videoId, author, dateCreated, hash);
+
+// 4. ipfs read 
+// eg)
+// {.. path:"QmcgHHQ8YdC3t1SvQ1kHDU9gtS78FVBhkeobXPXtqEB5X4"}
+// -> https://ipfs.io/ipfs/QmcgHHQ8YdC3t1SvQ1kHDU9gtS78FVBhkeobXPXtqEB5X4
+
+```
+
+## yttContract-interaction
+
+
+```js
+// 1. 컨트렉 인스턴스 생성
+const yttContract = new cav.klay.Contract(DEPLOYED_ABI, DEPLOYED_ADDRESS);
+
+// 2. 
+
+// 2.1 
+
+// contract ERC721Full is ERC721, ERC721Enumerable, ERC721Metadata
+
+/* ERC721Metadata */ 
+
+// 토큰의 정보를 저장한 IPFS hash 리턴
+yttContract.methods.tokenURI(tokenId).call();
+
+/* ERC721Enumerable */ 
+
+// Gets the token ID at a given index of the tokens list of the requested owner.
+yttContract.methods.tokenOfOwnerByIndex(address, index).call();
+
+// Gets the total amount of tokens stored by the contract.
+yttContract.methods.totalSupply().call();
+
+// Gets the token ID at a given index of all the tokens in this contract
+yttContract.methods.tokenByIndex(index).call();
+
+/* ERC721 */
+
+// 계정이 소유한 토큰의 개수 return
+yttContract.methods.balanceOf(address).call();
+
+// Tells whether an operator is approved by a given owner.
+yttContract.methods.isApprovedForAll(owner, operator).call();
+
+// tokenId를 넘기면 토큰주인 address return
+yttContract.methods.ownerOf(tokenId).call();
+
+
+
+// 2.2 
+
+// contract YouTubeThumbnailToken is ERC721Full
+
+/* YouTubeThumbnailToken  */
+yttContract.methods
+        .mintYTT(videoId,author,dateCreated,"https://ipfs.io/ipfs/" +hash)
+        .encodeABI()
+yttContract.methods.getYTT(tokenId).call();
+yttContract.methods.isTokenAlreadyCreated(videoId).call();
+
+
+```
+## tsContract-interaction
+
+```js
+// 1. 컨트렉 인스턴스 생성
+const tsContract = new cav.klay.Contract(
+  DEPLOYED_ABI_TOKENSALES,
+  DEPLOYED_ADDRESS_TOKENSALES
+);
+
+// 2.
+tsContract.methods.tokenPrice(tokenId).call();
+
+/* TokenSales */
+tsContract.methods.purchaseToken(tokenId).encodeABI()
+tsContract.methods
+          .removeTokenOnSale(tokensOnSale)
+          .send({
+            from: walletInstance.address,
+            gas: "250000",
+          });
+tsContract.methods
+              .setForSale(tokenId, cav.utils.toPeb(amount, "KLAY"))
+              .encodeABI(),
+```
