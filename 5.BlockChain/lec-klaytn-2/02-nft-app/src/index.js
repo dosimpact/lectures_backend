@@ -35,11 +35,13 @@ const App = {
 
   start: async function () {
     const walletFromSession = sessionStorage.getItem("walletInstance");
+    
     ipfs = await Ipfs.create({
       host:"ipfs.io",
       port:"5001",
       protocol:"http"
     })
+
     if (walletFromSession) {
       console.log("-->",walletFromSession);
       try {

@@ -184,7 +184,40 @@ true
 // 토큰 세일즈 컨트렉
 truffle(ganache)> instance = await TokenSales.deployed()
 
+// [1] 생성자 테스트
 >instance.nftAddress();
+ * 주소값 리턴, deployedAddress가 같음을 확인.
+
+// [2] setForSale 테스트
+instance = await YouTubeThumbnailToken.deployed()
+instance.setApprovalForAll("YTT주소값",true,{from:accounts[1]})
+
+// 실패케이스
+instance = await TokenSales.deployed()
+instance.setForSale(1, 1000000, {from:accounts[3]})
+
+// 성공
+instance.setForSale(1, 1000000, {from:accounts[1]})
+var price = await instance.tokenPrice(1)
+Number(price) // 16진수여서 -> 1000000
+
+// [3] purchaseToken 테스트
+payable 타입, 구매하기위해서 돈을 보낸다.
+
+3.1 1번계정으로 토큰 발행하고
+3.2 TokenSales에 1번계정이 승인
+3.3 토큰판매를 위해, setForSale
+  가격확인하기
+
+3.4 토큰구입을 위해, purchaseToken
+instance.purchaseToken(1,{from:accounts[2],value:100000})
+* payable 타입이여서 value를 명시해야한다.
+-> 이부분이 msg 인가?
+
+3.5 1번토큰의 소유자를 확인
+instance.ownerOf(1)
+accounts[2]
+
 
 
 ```

@@ -7,6 +7,9 @@
   - [ipfs](#ipfs)
   - [yttContract-interaction](#yttcontract-interaction)
   - [tsContract-interaction](#tscontract-interaction)
+  - [utils](#utils)
+- [process](#process)
+- [QnA](#qna)
 
 
 
@@ -59,8 +62,15 @@ const privateKey =
 // 1.3 walletInstance add
 const walletInstance = cav.klay.accounts.privateKeyToAccount(privateKey);
 cav.klay.accounts.wallet.add(walletInstance);
+sessionStorage.setItem("walletInstance", JSON.stringify(walletInstance));
 
-// 2. logout
+// 2. get wallet
+const walletInstance = cav.klay.accounts.wallet[0];
+walletInstance.address
+walletInstance.privateKey
+
+
+// 3. logout
 cav.klay.accounts.wallet.clear();
 
 ```
@@ -133,11 +143,24 @@ yttContract.methods.balanceOf(address).call();
 
 // Tells whether an operator is approved by a given owner.
 yttContract.methods.isApprovedForAll(owner, operator).call();
+eg) yttContract.methods.isApprovedForAll(walletInstance.address, DEPLOYED_ADDRESS_TOKENSALES).call();  
+  * 토큰소유자가 판매컨트렉트에게 대리 승인  
 
 // tokenId를 넘기면 토큰주인 address return
 yttContract.methods.ownerOf(tokenId).call();
 
-
+// operator에게 모든 토큰의 전송을 허락한다.
+yttContract.methods
+      .setApprovalForAll(DEPLOYED_ADDRESS_TOKENSALES, true)
+      .send({
+        from: walletInstance.address,
+        gas: "250000",
+      })
+      .then(function (receipt) {
+        if (receipt.transactionHash) {
+          location.reload();
+        }
+      });
 
 // 2.2 
 
@@ -162,17 +185,62 @@ const tsContract = new cav.klay.Contract(
 );
 
 // 2.
-tsContract.methods.tokenPrice(tokenId).call();
 
 /* TokenSales */
+
+// get 토큰의 가격
+tsContract.methods.tokenPrice(tokenId).call();
+
+// 토큰 구매
 tsContract.methods.purchaseToken(tokenId).encodeABI()
+
+// 토큰 판매 취소
 tsContract.methods
           .removeTokenOnSale(tokensOnSale)
           .send({
             from: walletInstance.address,
             gas: "250000",
           });
+eg) 
+
+// 토큰 판매
 tsContract.methods
               .setForSale(tokenId, cav.utils.toPeb(amount, "KLAY"))
               .encodeABI(),
+```
+
+## utils 
+
+```js
+// unit change 
+cav.utils.fromPeb(price, "KLAY") // peb to KLAY
+
+```
+# process
+
+```
+
+토큰 판매 
+토큰 판매 승인
+토큰 판매 철회
+
+```
+
+# QnA
+
+- send vs call
+
+```js
+// send
+        const receipt = await tsContract.methods
+          .removeTokenOnSale(tokensOnSale)
+          .send({
+            from: walletInstance.address,
+            gas: "250000",
+          });
+        if (receipt.transactionHash) {
+          alert(receipt.transactionHash);
+        }
+// call
+yttContract.methods.tokenOfOwnerByIndex(address, index).call();
 ```
