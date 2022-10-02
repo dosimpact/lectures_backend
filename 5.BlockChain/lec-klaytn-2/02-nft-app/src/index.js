@@ -2,7 +2,6 @@ import Caver from "caver-js";
 import { Spinner } from "spin.js";
 // import { create } from 'ipfs-http-client';
 
-//
 const feePayerWallet =
   "0x8e45db73fed200119f2f3ae0e99f9141ecc4493afcbd6c2ff0747cf03d1fff18";
 
