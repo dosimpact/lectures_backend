@@ -6,11 +6,9 @@
   - [버전정보](#버전정보)
   - [강좌 URL](#강좌-url)
   - [개발 프로세스](#개발-프로세스)
-  - [install](#install)
-  - [truffle version check](#truffle-version-check)
-  - [가나슈 테스트](#가나슈-테스트)
 - [bapp 요구사항](#bapp-요구사항)
   - [범주](#범주)
+- [urls](#urls)
 
 # crypto-ytt-starter
 
@@ -35,11 +33,8 @@ Klaytn ERC721 BApp
 ## 버전정보
 
 > node 버전: 16.13.0
-
 > npm 버전: 8.1.4
-
 > truffle 버전: 5.1.23
-
 > solidity 버전: 0.5.16
 
 ## 강좌 URL
@@ -59,168 +54,6 @@ contracts development process
     4. contracts ABI, Address
     5. FrontEnd Web DApp
 
-
-## install
-
-```
-npm install
-npm install -g ganache-cli 
-
-```
-
-## truffle version check
-
-```
-npx truffle version
-    Truffle v5.5.25 (core: 5.5.25)
-    Ganache v7.4.0
-    Solidity v0.5.16 (solc-js)
-    Node v16.14.2
-    Web3.js v1.7.4
-
-```
-
-## 가나슈 테스트
-
-```
-가나슈 : 솔리디티 네트워크 로컬 테스트 목적
-솔리디티 : 클레이튼과 이더리움 둘 모두 사용 가능 (클레이튼이 이더리움에서 fork)
-
----
-// 설치
-npm install -g ganache-cli
-
-// 실행
->ganache-cli
-
-  Ganache CLI v6.12.2 (ganache-core: 2.13.2)
-  ...
-  Listening on 127.0.0.1:8545
-
-
-// local test
-
-// 컴파일 및 베포 (ganache에 )
-npx truffle migrate --compile-all --reset --network ganache
-    - 빌드 결과물 생성
-    - 로컬 가나슈 네트워크에 베포되었음.
-
-// 가나슈 콘솔
-npx truffle console --network ganache
-
-// 스마트컨트랙 인스턴스 가져오기
-truffle(ganache)> instance = await YouTubeThumbnailToken.deployed()
-
-// 스마트컨트랙 확인
-truffle(ganache)> instance.name()
-  'Youtube Thumbnail'
-
-truffle(ganache)> instance.symbol()
-  'YTT'
-
-// 토큰 발행 
-// - from: accounts[1] : 가냐슈의 두번째 계정에서 호출함을 명시
-truffle(ganache)> instance.mintYTT("1234","dodo","2022.08.06","https://ipfs.io",{from: accounts[1]})
-  {
-    tx: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
-    receipt: {
-      transactionHash: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
-      transactionIndex: 0,
-      blockHash: '0xba4523be44959d12edfab370df3dc7fbb4ff3c5b3e5e879de446ab6d3776a828',
-      blockNumber: 13,
-      from: '0xa98d6b25571bab3c4883cce87e9c6bc723cf6f69',
-      to: '0x365828f21ffc407d78eecc3053a6feb67b4ca2f4',
-      gasUsed: 242376,
-      cumulativeGasUsed: 242376,
-      contractAddress: null,
-      logs: [ [Object] ],
-      status: true,
-      logsBloom: '0x000..',
-      rawLogs: [ [Object] ]
-    },
-    logs: [
-      {
-        logIndex: 0,
-        transactionIndex: 0,
-        transactionHash: '0x5d23b0c785917bbd32203415ecbe2da380f7caafd242f6a9a35d7b27e316909f',
-        blockHash: '0xba4523be44959d12edfab370df3dc7fbb4ff3c5b3e5e879de446ab6d3776a828',
-        blockNumber: 13,
-        address: '0x365828f21ffc407d78EECc3053a6fEb67b4CA2f4',
-        type: 'mined',
-        removed: false,
-        id: 'log_ba1741b7',
-        event: 'Transfer',
-        args: [Result]
-      }
-    ]
-  }
-
-// 총 토큰
-truffle(ganache)> instance.totalSupply();
-BN { negative: 0, words: [ 1, <1 empty item> ], length: 1, red: null }
-
-// 토큰 메타정보
-truffle(ganache)> instance.tokenURI(1);
-'https://ipfs.io'
-
-
-// 뷰 함수 - 토큰의 정보
-truffle(ganache)> instance.getYTT(1)
-Result { '0': 'dodo', '1': '2022.08.06' }
-
-// 뷰 함수 - 이미 제작 여부 
-truffle(ganache)> instance.isTokenAlreadyCreated("1111")
-false
-
-truffle(ganache)> instance.isTokenAlreadyCreated("1234")
-true
-
-```
-
---- 
-
-
-```
-// 토큰 세일즈 컨트렉
-truffle(ganache)> instance = await TokenSales.deployed()
-
-// [1] 생성자 테스트
->instance.nftAddress();
- * 주소값 리턴, deployedAddress가 같음을 확인.
-
-// [2] setForSale 테스트
-instance = await YouTubeThumbnailToken.deployed()
-instance.setApprovalForAll("YTT주소값",true,{from:accounts[1]})
-
-// 실패케이스
-instance = await TokenSales.deployed()
-instance.setForSale(1, 1000000, {from:accounts[3]})
-
-// 성공
-instance.setForSale(1, 1000000, {from:accounts[1]})
-var price = await instance.tokenPrice(1)
-Number(price) // 16진수여서 -> 1000000
-
-// [3] purchaseToken 테스트
-payable 타입, 구매하기위해서 돈을 보낸다.
-
-3.1 1번계정으로 토큰 발행하고
-3.2 TokenSales에 1번계정이 승인
-3.3 토큰판매를 위해, setForSale
-  가격확인하기
-
-3.4 토큰구입을 위해, purchaseToken
-instance.purchaseToken(1,{from:accounts[2],value:100000})
-* payable 타입이여서 value를 명시해야한다.
--> 이부분이 msg 인가?
-
-3.5 1번토큰의 소유자를 확인
-instance.ownerOf(1)
-accounts[2]
-
-
-
-```
 
 ```
 // 바오밥 테스트넷 베포
@@ -270,3 +103,21 @@ ERC721 스마트 컨트렉 함수
 - 서버 - 대납 계정, 컨트렉 베포자.  
 
 
+# urls
+```
+인프런 강의-1	https://www.inflearn.com/course/%ED%81%B4%EB%A0%88%EC%9D%B4%ED%8A%BC/lecture/19236
+인프런 강의-2	https://www.inflearn.com/course/%ED%81%B4%EB%A0%88%EC%9D%B4%ED%8A%BC
+강좌별 BApp 파일	https://drive.google.com/drive/folders/1oxIqcMry1UnUgJFWYE3TClFYztL8pd9O
+클래이튼 공식문서	https://docs.klaytn.com/
+클래이튼 트랜젝션 모니터링 	https://scope.klaytn.com/
+클레이튼 월렛	https://wallet.klaytn.com/
+클레이튼 IDE 	https://ide.klaytn.com/
+클레이튼 포지션 페이퍼	https://www.klaytn.com/Klaytn_PositionPaper_V2.1.0.pdf
+클레이튼 포럼	https://forum.klaytn.com/
+Remix - Ethereum IDE	https://remix-ide.readthedocs.io/en/latest/
+KAS ( Klay API Service ) 	https://www.klaytnapi.com/ko/landing/main
+Truffle Box	https://trufflesuite.com/boxes/
+npm - caver-js 	https://www.npmjs.com/package/caver-js
+ipfs-public gateway	https://ipfs.github.io/public-gateway-checker/
+ipfs-js 	https://js.ipfs.tech/
+```

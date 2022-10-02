@@ -2,6 +2,10 @@ import Caver from "caver-js";
 import { Spinner } from "spin.js";
 // import { create } from 'ipfs-http-client';
 
+//
+const feePayerWallet =
+  "0x8e45db73fed200119f2f3ae0e99f9141ecc4493afcbd6c2ff0747cf03d1fff18";
+
 const config = {
   // "http://127.0.0.1:8545"
   rpcURL: "https://api.baobab.klaytn.net:8651",
@@ -35,15 +39,15 @@ const App = {
 
   start: async function () {
     const walletFromSession = sessionStorage.getItem("walletInstance");
-    
+
     ipfs = await Ipfs.create({
-      host:"ipfs.io",
-      port:"5001",
-      protocol:"http"
-    })
+      host: "ipfs.io",
+      port: "5001",
+      protocol: "http",
+    });
 
     if (walletFromSession) {
-      console.log("-->",walletFromSession);
+      console.log("-->", walletFromSession);
       try {
         cav.klay.accounts.wallet.add(JSON.parse(walletFromSession));
         this.changeUI(JSON.parse(walletFromSession));
@@ -186,7 +190,7 @@ const App = {
       // 버퍼.form  : 문자열 -> 바이너리
       const results = await ipfs.add(Buffer.from(JSON.stringify(metaData)));
       // 해쉬값을 반환 받는다, 업로드 시간이 랜덤하다.
-      console.log("-->results",results);
+      console.log("-->results", results);
       const hash = results.path;
       await this.mintYTT(videoId, author, dateCreated, hash);
       spinner.stop();
@@ -196,9 +200,12 @@ const App = {
     }
   },
   /* contracts - mintYTT */
+  // bapp 사용자가 가스비를 안내도록 하기
   mintYTT: async function (videoId, author, dateCreated, hash) {
-    const sender = this.getWallet(); // 로그인한 월렛의 계정
-    const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f"); // 대납계정 , 컨트렛을 베포한 계정
+    // 로그인한 월렛의 계정, 비밀키 입력
+    const sender = this.getWallet();
+    // 컨트랙을 베포한 주소계정
+    const feePayer = cav.klay.accounts.wallet.add(feePayerWallet); // 가스비 대납계정 , 컨트렛을 베포한 계정
     // 월렛에 추가됨.
 
     //ref : https://docs.klaytn.foundation/dapp/sdk/caver-js/v1.4.1/api-references/caver.klay.accounts#signtransaction
@@ -356,6 +363,8 @@ const App = {
     this.showSpinner();
     const walletInstance = this.getWallet();
 
+    // send + 가스까지 보내는 기준은 ?
+    // setApprovalForAll 함수는 payable이 아닌데.
     yttContract.methods
       .setApprovalForAll(DEPLOYED_ADDRESS_TOKENSALES, true)
       .send({
@@ -363,6 +372,7 @@ const App = {
         gas: "250000",
       })
       .then(function (receipt) {
+        // 영수증에 transactionHash가 있다면,
         if (receipt.transactionHash) {
           location.reload();
         }
@@ -407,7 +417,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f");
+      const feePayer = cav.klay.accounts.wallet.add(feePayerWallet);
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =
@@ -452,7 +462,7 @@ const App = {
     try {
       var spinner = this.showSpinner();
       const sender = this.getWallet();
-      const feePayer = cav.klay.accounts.wallet.add("0x7a68b5f300c07577c10e9a577d575f4f42a219b6ad9b412b84058e380eec093f");
+      const feePayer = cav.klay.accounts.wallet.add(feePayerWallet);
 
       // using the promise
       const { rawTransaction: senderRawTransaction } =

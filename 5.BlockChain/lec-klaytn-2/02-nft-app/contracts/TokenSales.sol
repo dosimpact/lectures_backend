@@ -57,12 +57,17 @@ contract TokenSales {
         tokenPrice[_tokenId] = 0;
     }
 
+    // tokenIds : 계정이 소유한 토큰중 판매중인 토큰 아이디만
     function removeTokenOnSale(uint256[] memory tokenIds) public {
+        // 최소 1개 이상의 토큰
         require(tokenIds.length > 0, "tokenIds is empty");
         for (uint256 i = 0; i < tokenIds.length; i++) {
+            // 토큰아이디, 판매자 주소
             uint256 tokenId = tokenIds[i];
             address tokenSeller = nftAddress.ownerOf(tokenId);
+            // 함수를 호출한 계정 == ? 토큰셀러 (즉, 토큰의 주인인지 확인)
             require(msg.sender == tokenSeller, "caller is not token seller");
+            // 토큰 가격을 0으로 리셋시켜
             tokenPrice[tokenId] = 0;
         }
     }
