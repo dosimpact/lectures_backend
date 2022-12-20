@@ -1,0 +1,16 @@
+FROM node:16
+
+ENV PORT 5058
+RUN echo $PORT
+
+EXPOSE 5058
+
+WORKDIR /app
+ADD ./ /app
+
+RUN npm install
+
+CMD ["npm","run","api"]
+
+# docker build -t node_api:1 -f ./docker/Dockerfile.api . 
+# docker run -it --rm -p 5058:5058 node_api:1
