@@ -1,8 +1,8 @@
 ### Enqueue hello world
-POST http://localhost:3010/hello-world
+GET http://localhost:5050/hello-world
 
 ### Enqueue heavy-computing
-POST http://localhost:3010/heavy-computing?number=2
+GET http://localhost:5050/heavy-computing?number=2
 
 ### Enqueue retryable
-POST http://localhost:3010/retryable
+GET http://localhost:5050/retryable

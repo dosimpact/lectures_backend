@@ -3,6 +3,37 @@ services:
   redis:
     container_name: bull-mq-redis
     image: redis:6
-    restart: always
     ports:
-      - 5050:6379
+      - ${REDIS_PORT}:6379
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  # api-server:
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/Dockerfile.api
+  #   container_name: api-server
+  #   environment:
+  #     - PORT=${SERVER_API_PORT}
+  #   ports:
+  #     - "${SERVER_API_PORT}:${SERVER_API_PORT}"
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   depends_on:
+  #     - redis
+
+  # admin-server:
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/Dockerfile.admin
+  #   container_name: admin-server
+  #   environment:
+  #     - PORT=${SERVER_ADMIN_PORT}
+  #     - REDIS_HOST=${REDIS_HOST}
+  #     - REDIS_PORT=${REDIS_PORT}
+  #   ports:
+  #     - "${SERVER_ADMIN_PORT}:${SERVER_ADMIN_PORT}"
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   depends_on:
+  #     - redis

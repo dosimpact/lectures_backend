@@ -1,9 +1,8 @@
 FROM node:16
 
 ENV PORT 5058
-RUN echo $PORT
 
-EXPOSE 5058
+EXPOSE $PORT
 
 WORKDIR /app
 ADD ./ /app

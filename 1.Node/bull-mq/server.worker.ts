@@ -21,7 +21,7 @@ const workerHandler = async (job: Job<WorkerJob>) => {
     }
     case "MayFailOrNot": {
       if (Math.random() > 0.3) {
-        console.log(`FAILED ;( - ${job.data.data.magicNumber}`)
+        console.log(`FAILED ;( - ${job.data.data.magicNumber}`);
         throw new Error("Something went wrong");
       }
 
@@ -34,10 +34,9 @@ const workerHandler = async (job: Job<WorkerJob>) => {
 const workerOptions: WorkerOptions = {
   connection: {
     host: "localhost",
-    port: 5050,
+    port: 5059,
   },
 };
-
 
 const worker = new Worker("testQueue", workerHandler, workerOptions);
 

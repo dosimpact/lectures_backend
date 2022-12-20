@@ -1,25 +1,51 @@
 import express from "express";
 import { getRandomInt } from "./utils";
+import rateLimit, { MemoryStore } from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { createClient } from "redis";
 
-const app = express();
+const bootstrap = async () => {
+  const client = createClient({
+    url: "redis://localhost:5059",
+  });
+  await client.connect();
 
-const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+  const limiter = rateLimit({
+    windowMs: 10 * 1000, // 10 sec
+    max: 3, // Limit each IP to 3 requests per `window` (here, per 10 sec)
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    keyGenerator: (request, response) => {
+      console.log(`[info] request.ip ${request.ip}`);
+      return request.ip;
+    },
+    store: new RedisStore({
+      sendCommand: (...args: string[]) => client.sendCommand(args),
+    }),
+  });
 
-// EXPRESS SETUP
+  const app = express();
 
-app.get("/", async (_req, res) => {
-  res.json({ ok: true });
-});
+  // EXPRESS SETUP
 
-app.get("/num", async (_req, res) => {
-  await sleep(getRandomInt(500, 1500));
-  res.json({ num: getRandomInt(1, 100) });
-});
+  let inboundCnt = 0;
 
-// STARTUP
+  app.get("/", async (_req, res) => {
+    res.json({ ok: true });
+  });
 
-const PORT = process.env.PORT || 5058;
+  app.get("/num", limiter, async (_req, res) => {
+    console.log("[info] inbound : ", ++inboundCnt);
+    res.json({ num: getRandomInt(1, 100) });
+  });
 
-app.listen(PORT, () => {
-  console.log(`Example api app listening on port ${PORT}`);
-});
+  // STARTUP
+
+  const PORT = process.env.PORT || 5058;
+
+  app.listen(PORT, () => {
+    console.log(`Example api app listening on port ${PORT}`);
+  });
+};
+bootstrap();
+
+// redis-cli -h host -p 5059

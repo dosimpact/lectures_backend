@@ -1,13 +1,17 @@
 FROM node:16
 
-WORKDIR /app
+ENV PORT 5050
+ENV REDIS_HOST 9999
+ENV REDIS_PORT 9999
 
+EXPOSE $PORT
+
+WORKDIR /app
 ADD ./ /app
 
 RUN npm install
 
+CMD ["npm","run","admin"]
 
-CMD ["bin/bash"]
-
-# docker build -t node_api:1 -f ./docker/Dockerfile.api . 
-# docker run -it -rm node_api:1
+# docker build -t node_admin:1 -f ./docker/Dockerfile.admin . 
+# docker run -it --rm -p 5050:5050 node_admin:1

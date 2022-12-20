@@ -4,7 +4,13 @@ import { WorkerJob } from "./jobs";
 
 const app = express();
 
-const redisOptions = { host: "localhost", port: 5050 };
+console.log("[info] REDIS_HOST", process.env.REDIS_HOST);
+console.log("[info] REDIS_PORT", process.env.REDIS_PORT);
+
+const redisOptions = {
+  host: process.env.REDIS_HOST || "localhost",
+  port: Number(process.env.REDIS_PORT) || 5059,
+};
 
 // QUEUE SETUP
 
@@ -36,7 +42,7 @@ const addRetryableJobToTestQueue = (job: WorkerJob) =>
 
 // EXPRESS SETUP
 
-app.post("/hello-world", async (_req, res) => {
+app.get("/hello-world", async (_req, res) => {
   await addJobToTestQueue({
     type: "PrintHelloWorld",
     data: { hello: "world" },
@@ -45,16 +51,16 @@ app.post("/hello-world", async (_req, res) => {
   res.json({ queued: true });
 });
 
-app.post("/heavy-computing", async (req: Request<{ number: number }>, res) => {
+app.get("/heavy-computing", async (req: Request<{ number: number }>, res) => {
   await addJobToTestQueue({
     type: "DoSomeHeavyComputing",
-    data: { magicNumber: Number(req.params.number || 5) },
+    data: { magicNumber: Number(req.params.number || 10) },
   });
 
   res.json({ queued: true });
 });
 
-app.post("/retryable", async (req, res) => {
+app.get("/retryable", async (req, res) => {
   await addRetryableJobToTestQueue({
     type: "MayFailOrNot",
     data: { magicNumber: Math.floor(Math.random() * 1000) },
@@ -103,7 +109,7 @@ app.use("/bull-board", serverAdapter.getRouter());
 
 // STARTUP
 
-const PORT = process.env.PORT || 3010;
+const PORT = process.env.PORT || 5050;
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
