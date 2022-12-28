@@ -1,585 +1,293 @@
-ref : https://box0830.tistory.com/404
 
+Redis Cluster 구성하기
+1번 방법으로 시도 했으나, 도커 외부에 들어올때 문제가 발생하여 2번 방법으로 네트워크를 구성함
+- 1번방법 : bridge 네트워크로, 도커 내부 네트워크만 구성이 되어, 레디스 리다이렉트가 정상적으로 동작하지 않음.
+- 2번방법 : host와 유사한?방식의 네트워크 구성이지만, 하나의 서비스가 네트워크 통로역할을 하며 구성되는 방식이다.
+
+1. https://box0830.tistory.com/404
+2. https://velog.io/@ililil9482/Redis-Cluster-%EA%B5%AC%EC%84%B1
 
 ---
-- [컴퓨터 환경](#컴퓨터-환경)
-- [Sentinel](#sentinel)
 
+- [docker network](#docker-network)
+  - [docker network 필요성](#docker-network-필요성)
+  - [docker network ls](#docker-network-ls)
+  - [네트워크 종류](#네트워크-종류)
+  - [네트워크 생성 및 붙이기](#네트워크-생성-및-붙이기)
+  - [동일네트워크내 통신하기](#동일네트워크내-통신하기)
+  - [네트워크 삭제](#네트워크-삭제)
+- [docker compose network](#docker-compose-network)
+  - [디폴트 네워크로 구성하여 연결](#디폴트-네워크로-구성하여-연결)
+  - [컨테이너간 통신](#컨테이너간-통신)
+  - [커스텀 네트워크 추가](#커스텀-네트워크-추가)
+  - [외부 네트워크 사용](#외부-네트워크-사용)
 
-지난번 포스팅을 통하여 Redis의 정의 및 Sentinel, Cluster의 고가용성을 알아보았는데요. 
+# docker network
+https://www.daleseo.com/docker-networks/
 
-이번에는 간단하게 docker-compose를 활용하여 아래 세 가지 방법의 Redis 구성을 진행해보았습니다.
+## docker network 필요성
 
-Standalone
-Sentinel
-Cluster mode
- 
+- 격리된 환경에서 돌아가는 컨테이너는 서로 통신이 불가능함.
+- 하나의 네트워크를 구성해주면 통신이 가능해진다. 
 
-간단하게 설정 파일 및 실행 명령어만 작성해두었습니다. 궁금한 점은 댓글로 남겨주시면 최대한 답변 남기도록 하겠습니다.
+목표:
+- 컨테이너간의 네트워크 만들기
+- 컨테이커밖의 네트워크 구성하기
 
- 
+## docker network ls
 
- 
-What is Redis; Remote Dictionary Server
+```
+docker network ls
 
-Airflow의 CeleryExecutor를 사용할 때, Redis가 Queue로써 동작하는 것을 알고 있었지만, 지금까지 이를 제대로 알아보고자 한 적이 없었습니다. 이번 기회에 Redis가 무엇인지, 어떠한 구조로 이루어져 있
+NETWORK ID     NAME                          DRIVER    SCOPE
+// 도커 데몬이 기본적으로 만들어준 네트워크
+c6294af5fba5   bridge                        bridge    local
+d932bfb7a1ca   host                          host      local
+255c07dcf247   none                          null      local
+// 사용자가 직접 생성한 네트워크
+7f35e3df4c13   redis-cluster_redis_cluster   bridge    local
+4fc4dc3e1e71   montetalks-workers_default    bridge    local
+```
+## 네트워크 종류
 
-box0830.tistory.com
- 
-Redis High Availability; Sentinel vs Cluster
+bridge  네트워크는 하나의 호스트 컴퓨터 내에서 여러 컨테이너들이 서로 소통할 수 있도록 해줍니다.  
+host    네트워크는 컨터이너를 호스트 컴퓨터와 동일한 네트워크에서 컨테이너를 돌리기 위해서 사용됩니다.  
+overlay 네트워크는 여러 호스트에 분산되어 돌아가는 컨테이너들 간에 네트워킹을 위해서 사용됩니다. 
 
-Overview 지난 포스팅에서 Redis가 무엇인지 가볍게 살펴보는 시간을 가졌었습니다. 이번 포스팅에서는 Redis의 HA 구성을 주제로 Sentinel과 Cluster 두 방식을 비교해보도록 하겠습니다. What is Redis; Remote
+## 네트워크 생성 및 붙이기
 
-box0830.tistory.com
- 
+```
+// birdge network 만들기
+docker network create our-net
 
-# 컴퓨터 환경
+// network 목록 보기
+docker network ls
+NETWORK ID     NAME                          DRIVER    SCOPE
+f1af1ed3b8a0   our-net                       bridge    local
 
-m2 apple silicon chip
-Docker Version: 20.10.7
-Redis version: 7.x.x
- 
+// 연결된 container 보기
+docker network inspect our-net
+// 예) 컨테이너가 있는 예
+docker network inspect redis-cluster_redis_cluster
+[
+    {
+        "Name": "redis-cluster_redis_cluster",
+        "Id": "7f35e3df4c13ea6bb0c6200254f3acaa6e5e3c8dc8b246953f41cb9268d962aa",
+        "Created": "2022-12-28T09:02:38.7323616Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "173.17.0.0/24"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "27e8024e415fdb16efe14b85946eacd93ab4273296533e77162c72d9df58e4ac": {
+                "Name": "redis02",
+                "EndpointID": "c9cc75a669dedd8c98888a6c99d16c45b6d05ff439eed276e92ead8e589efded",
+                "MacAddress": "02:42:ad:11:00:03",
+                "IPv4Address": "173.17.0.3/24",
+                "IPv6Address": ""
+            },
+            "53e5a4db96f846d04a7cd523f3d070cfd0a5fd0cff6e3439a344c5400001a2b4": {
+                "Name": "redis06",
+                "EndpointID": "44c654ca2b55aebdb7d21d1a46abf33a1ce3d4c2ce9147ee1b2f54bfc4ff0d3e",
+                "MacAddress": "02:42:ad:11:00:07",
+                "IPv4Address": "173.17.0.7/24",
+                "IPv6Address": ""
+            },
+            "569f5b9d9e804c6f1019cfdb8b32008acc92b63bbefe9ed557e04719c6d76c7f": {
+                "Name": "redis01",
+                "EndpointID": "d36e1cecd55d0c46c5396f6731ac26e636c7d517c019c4a8c1aa32a26ea0de71",
+                "MacAddress": "02:42:ad:11:00:02",
+                "IPv4Address": "173.17.0.2/24",
+                "IPv6Address": ""
+            },
+            "58e921b5f32f4c87e042c535f8bef82265e59dbb0f827041aabdd82ba4fa89f3": {
+                "Name": "redis03",
+                "EndpointID": "a06d29800440951c712de6b99e624c5a6b324e8da99fb7fd0181af78293f49a6",
+                "MacAddress": "02:42:ad:11:00:04",
+                "IPv4Address": "173.17.0.4/24",
+                "IPv6Address": ""
+            },
+            "bd60918064e28bd5c084c231006bed0f28e9b6930d46dc0208d9d36cd32deb07": {
+                "Name": "redis04",
+                "EndpointID": "4c6960196cdcf29ad57a3662f25fd7e484d49ea34e3b3271590155e7d14974bf",
+                "MacAddress": "02:42:ad:11:00:05",
+                "IPv4Address": "173.17.0.5/24",
+                "IPv6Address": ""
+            },
+            "ed962981e0e15cfa7e8f536eb80f8b2360aad321b9a1e4f939c6ed9595b23997": {
+                "Name": "redis05",
+                "EndpointID": "429d3c3b02f88706340943d6633adb536b553ee3d7417f354bbccae27124529d",
+                "MacAddress": "02:42:ad:11:00:06",
+                "IPv4Address": "173.17.0.6/24",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {
+            "com.docker.compose.network": "redis_cluster",
+            "com.docker.compose.project": "redis-cluster",
+            "com.docker.compose.version": "2.2.1"
+        }
+    }
+]
+```
 
-Standalone
-Environment
+```
+// 기본적으로 만들어진 bridge 네트워크에 붙게된다. 
+docker run -itd --name one busybox
+// 우리가 만든 네트워크에 붙여보자.
+docker network connect our-net one
+// 기존 네트워크에서 연결 해제
+docker network disconnect bridge one
 
-standalone.yaml
+// 컨테이너 생성과 동시에, 네트워크 붙이기
+docker run -itd --name two --network our-net busybox
 
-version: '3.7'
+```
+
+## 동일네트워크내 통신하기
+
+```
+// 컨테이너 이름을 통해 핑
+docker exec one ping two
+// ip 주소를 통해 핑
+docker exec two ping 172.20.0.2
+
+```
+## 네트워크 삭제
+```
+// 삭제할 네트워크를 사용중인 컨테인가 있으므로, 삭제 오류
+docker network rm our-net
+
+docker stop one two
+docker network rm our-net
+docker network prune
+
+```
+
+# docker compose network
+https://www.daleseo.com/docker-compose-networks/
+
+## 디폴트 네워크로 구성하여 연결
+
+```
+docker network ls
+
+NETWORK ID     NAME                          DRIVER    SCOPE
+c6294af5fba5   bridge                        bridge    local
+d932bfb7a1ca   host                          host      local
+4fc4dc3e1e71   montetalks-workers_default    bridge    local
+
+[montetalks-workers]_default
+디렉터리 이름이 montetalks-workers 안에 있는 docker-compose.yml 을 실행시켜 만든 디폴트 네트워크
+
+도커 컴포스 시작 : 네트워크 구성 > 컨테이너 생성
+도커 컴포스 다운 : 마지막에 네트워크 삭제
+
+```
+
+## 컨테이너간 통신
+
+```
+서비스 이름이 호스트 명으로 사용된다.
+docker-compose exec web ping db
+---
+접속하는 위치가 디폴트 네트워크 내부냐 외부냐에 따라서 포트(port)가 달라질 수 있다는 것
+
 services:
-  redis:
-    image: redis:7.0.4
-    command: redis-server --port 6379
-    container_name: redis_standalone
-    hostname: redis_standalone
-    labels:
-      - "name=redis"
-      - "mode=standalone"
+  web:
+    build: .
     ports:
-      - 6379:6379
- 
+      - "8001:8000"
 
-Run
+case1 ) 호스트 컴퓨터에서 web 서비스 컨테이너 접속
+$ curl -I localhost:8001
 
-$ docker-compose -f redis/standalone.yaml up
- 
+case2 ) 같은 네트워크 내의 다른 컨테이너에서 web 서비스 컨테이너 접속
+$ docker-compose exec alpine curl -I web:8000
 
-Test
 
-$ docker exec -it redis_standalone redis-cli
-127.0.0.1:6379> ping
-PONG
-127.0.0.1:6379> keys *
-(empty array)
-127.0.0.1:6379> set story test
-OK
-127.0.0.1:6379> get story
-"test"
-127.0.0.1:6379> keys *
-1) "story"
- 
+```
 
-Sentinel
-Environment
+## 커스텀 네트워크 추가
 
-편의상 bitnami 이미지를 활용하여 생성해보았습니다.
+```
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    networks:
+      - default
+      - our_net
 
-version: '3.7'
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
 networks:
-  sentinel:
+  our_net:
     driver: bridge
 
-services:
-  redis:
-    image: 'bitnami/redis:latest'
-    environment:
-      - REDIS_REPLICATION_MODE=master
-      - REDIS_PASSWORD=str0ng_passw0rd
-    networks:
-      - sentinel
-    ports:
-      - '6379'
-  redis-slave:
-    image: 'bitnami/redis:latest'
-    environment:
-      - REDIS_REPLICATION_MODE=slave
-      - REDIS_MASTER_HOST=redis
-      - REDIS_MASTER_PASSWORD=str0ng_passw0rd
-      - REDIS_PASSWORD=str0ng_passw0rd
-    ports:
-      - '6379'
-    depends_on:
-      - redis
-    networks:
-      - sentinel
-  redis-sentinel:
-    image: 'bitnami/redis-sentinel:latest'
-    environment:
-      - REDIS_MASTER_PASSWORD=str0ng_passw0rd
-    depends_on:
-      - redis
-      - redis-slave
-    ports:
-      - '26379-26381'
-    networks:
-      - sentinel
- 
+1. our_net 이라는 네트워크 생성
+2. service:web 은 default + our_net 모두 연결
+3. db는 default 연결
 
-Run
+--- 2개 네트워크 생성 확인
 
-$ docker-compose -f redis/sentinel.yaml up --scale redis-sentinel=3 --scale redis-slave=3
-더보기
- 
+docker-compose up -d
+Creating network "our_app_default" with the default driver
+Creating network "our_app_our_net" with driver "bridge"
+Creating our_app_db_1 ... done
+Creating our_app_web_1 ... done
 
-Check
+--- 2개 네트워크 생성 확인
+$ our_app docker network ls
+NETWORK ID          NAME                   DRIVER              SCOPE
+f1859120a0c3        bridge                 bridge              local
+95b00551745b        host                   host                local
+1f7202baa40a        none                   null                local
+2682634e6535        our_app_default        bridge              local
+525403b38bbe        our_app_our_net        bridge              local
 
-$ docker exec -it redis-redis-sentinel-1 redis-cli -p 26379
-127.0.0.1:26379> info sentinel
-# Sentinel
-sentinel_masters:1
-sentinel_tilt:0
-sentinel_tilt_since_seconds:-1
-sentinel_running_scripts:0
-sentinel_scripts_queue_length:0
-sentinel_simulate_failure_flags:0
-master0:name=mymaster,status=ok,address=172.20.0.2:6379,slaves=3,sentinels=3
- 
+```
 
- 
+## 외부 네트워크 사용
+- 외부 네트워크를 잘 활용하면 서로 다른 Docker Compose에서 돌아가고 있는 컨테이너 간에도 연결도 가능하게
 
-Cluster Mode
-Environment
+```
+-- 미리 외부 네트워크 생성해둔다.
+$ docker network create our_net
+6d791b927c8c151c45a10ac13c62f3571ecf38a90756fd2ca1c62b7d3de804e8
 
-node[01-06].conf
+$ docker network ls
+NETWORK ID          NAME                   DRIVER              SCOPE
+f1859120a0c3        bridge                 bridge              local
+95b00551745b        host                   host                local
+1f7202baa40a        none                   null                local
+6d791b927c8c        our_net                bridge              local
 
-port [7001-7006]
-cluster-enabled yes
-cluster-config-file nodes.conf
-cluster-node-timeout 3000
-appendonly yes
- 
-
-cluster.yaml
-
-version: '3.7'
-services:
-  node01:
-    image: redis:7.0.4
-    container_name: redis01
-    restart: always
-    ports:
-      - 7001:7001
-    volumes:
-      - ./cluster/node01.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.2
-
-  node02:
-    image: redis:7.0.4
-    container_name: redis02
-    restart: always
-    ports:
-      - 7002:7002
-    volumes:
-      - ./cluster/node02.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.3
-
-  node03:
-    image: redis:7.0.4
-    container_name: redis03
-    restart: always
-    ports:
-      - 7003:7003
-    volumes:
-      - ./cluster/node03.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.4
-
-  node04:
-    image: redis:7.0.4
-    container_name: redis04
-    restart: always
-    ports:
-      - 7004:7004
-    volumes:
-      - ./cluster/node04.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.5
-
-  node05:
-    image: redis:7.0.4
-    container_name: redis05
-    restart: always
-    ports:
-      - 7005:7005
-    volumes:
-      - ./cluster/node05.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.6
-
-  node06:
-    image: redis:7.0.4
-    container_name: redis06
-    restart: always
-    ports:
-      - 7006:7006
-    volumes:
-      - ./cluster/node06.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.7
-
-  redis_cluster:
-    image: redis:7.0.4
-    container_name: redis_cluster
-    platform: linux/arm64/v8
-    command: redis-cli --cluster create 173.17.0.2:7001 173.17.0.3:7002 173.17.0.4:7003 173.17.0.5:7004 173.17.0.6:7005 173.17.0.7:7006 --cluster-yes --cluster-replicas 1
-    depends_on:
-      - node01
-      - node02
-      - node03
-      - node04
-      - node05
-      - node06
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.8
+--- 외부 네트워크 디폴트로 연결
 networks:
-  redis_cluster:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 173.17.0.0/24
- 
+  default:
+    external:
+      name: our_net
 
- 
-
-Run
-
-$ docker-compose -f redis/cluster.yaml up --force-recreate
-닫기
-[+] Running 8/7
- ⠿ Network redis_redis_cluster  Created                                                                                                                                                                  0.0s
- ⠿ Container redis02            Created                                                                                                                                                                  0.1s
- ⠿ Container redis03            Created                                                                                                                                                                  0.1s
- ⠿ Container redis06            Created                                                                                                                                                                  0.1s
- ⠿ Container redis04            Created                                                                                                                                                                  0.1s
- ⠿ Container redis05            Created                                                                                                                                                                  0.1s
- ⠿ Container redis01            Created                                                                                                                                                                  0.1s
- ⠿ Container redis_cluster      Created                                                                                                                                                                  0.0s
-Attaching to redis01, redis02, redis03, redis04, redis05, redis06, redis_cluster
-redis01        | 1:C 12 Sep 2022 06:17:39.010 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis01        | 1:C 12 Sep 2022 06:17:39.010 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis01        | 1:C 12 Sep 2022 06:17:39.010 # Configuration loaded
-redis01        | 1:M 12 Sep 2022 06:17:39.011 * monotonic clock: POSIX clock_gettime
-redis01        | 1:M 12 Sep 2022 06:17:39.011 * No cluster configuration found, I'm f1f993c453b358e7858b4946d0cfbe53df1b0d1c
-redis01        | 1:M 12 Sep 2022 06:17:39.012 * Running mode=cluster, port=7001.
-redis01        | 1:M 12 Sep 2022 06:17:39.012 # Server initialized
-redis01        | 1:M 12 Sep 2022 06:17:39.014 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis01        | 1:M 12 Sep 2022 06:17:39.016 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis01        | 1:M 12 Sep 2022 06:17:39.016 * Ready to accept connections
-redis04        | 1:C 12 Sep 2022 06:17:39.160 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis04        | 1:C 12 Sep 2022 06:17:39.160 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis04        | 1:C 12 Sep 2022 06:17:39.160 # Configuration loaded
-redis04        | 1:M 12 Sep 2022 06:17:39.160 * monotonic clock: POSIX clock_gettime
-redis04        | 1:M 12 Sep 2022 06:17:39.161 * No cluster configuration found, I'm e74049c7d4ac68ead6fbb7d240995adec1dbe443
-redis04        | 1:M 12 Sep 2022 06:17:39.164 * Running mode=cluster, port=7004.
-redis04        | 1:M 12 Sep 2022 06:17:39.164 # Server initialized
-redis04        | 1:M 12 Sep 2022 06:17:39.169 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis04        | 1:M 12 Sep 2022 06:17:39.171 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis04        | 1:M 12 Sep 2022 06:17:39.171 * Ready to accept connections
-redis06        | 1:C 12 Sep 2022 06:17:39.202 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis06        | 1:C 12 Sep 2022 06:17:39.202 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis06        | 1:C 12 Sep 2022 06:17:39.202 # Configuration loaded
-redis06        | 1:M 12 Sep 2022 06:17:39.202 * monotonic clock: POSIX clock_gettime
-redis06        | 1:M 12 Sep 2022 06:17:39.203 * No cluster configuration found, I'm 9e267dec00ae0e623eef7379f1ddd010f46ea57f
-redis06        | 1:M 12 Sep 2022 06:17:39.205 * Running mode=cluster, port=7006.
-redis06        | 1:M 12 Sep 2022 06:17:39.205 # Server initialized
-redis06        | 1:M 12 Sep 2022 06:17:39.212 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis06        | 1:M 12 Sep 2022 06:17:39.215 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis06        | 1:M 12 Sep 2022 06:17:39.215 * Ready to accept connections
-redis03        | 1:C 12 Sep 2022 06:17:39.239 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis03        | 1:C 12 Sep 2022 06:17:39.239 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis03        | 1:C 12 Sep 2022 06:17:39.239 # Configuration loaded
-redis03        | 1:M 12 Sep 2022 06:17:39.239 * monotonic clock: POSIX clock_gettime
-redis03        | 1:M 12 Sep 2022 06:17:39.239 * No cluster configuration found, I'm ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5
-redis03        | 1:M 12 Sep 2022 06:17:39.242 * Running mode=cluster, port=7003.
-redis03        | 1:M 12 Sep 2022 06:17:39.242 # Server initialized
-redis03        | 1:M 12 Sep 2022 06:17:39.245 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis03        | 1:M 12 Sep 2022 06:17:39.247 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis03        | 1:M 12 Sep 2022 06:17:39.247 * Ready to accept connections
-redis05        | 1:C 12 Sep 2022 06:17:39.302 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis05        | 1:C 12 Sep 2022 06:17:39.302 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis05        | 1:C 12 Sep 2022 06:17:39.302 # Configuration loaded
-redis05        | 1:M 12 Sep 2022 06:17:39.303 * monotonic clock: POSIX clock_gettime
-redis05        | 1:M 12 Sep 2022 06:17:39.303 * No cluster configuration found, I'm ca721ac17767523dfdeaeafd93007063f0753170
-redis05        | 1:M 12 Sep 2022 06:17:39.306 * Running mode=cluster, port=7005.
-redis05        | 1:M 12 Sep 2022 06:17:39.306 # Server initialized
-redis05        | 1:M 12 Sep 2022 06:17:39.309 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis05        | 1:M 12 Sep 2022 06:17:39.312 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis05        | 1:M 12 Sep 2022 06:17:39.312 * Ready to accept connections
-redis02        | 1:C 12 Sep 2022 06:17:39.339 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-redis02        | 1:C 12 Sep 2022 06:17:39.340 # Redis version=7.0.4, bits=64, commit=00000000, modified=0, pid=1, just started
-redis02        | 1:C 12 Sep 2022 06:17:39.340 # Configuration loaded
-redis02        | 1:M 12 Sep 2022 06:17:39.341 * monotonic clock: POSIX clock_gettime
-redis02        | 1:M 12 Sep 2022 06:17:39.341 * No cluster configuration found, I'm 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50
-redis02        | 1:M 12 Sep 2022 06:17:39.342 * Running mode=cluster, port=7002.
-redis02        | 1:M 12 Sep 2022 06:17:39.343 # Server initialized
-redis02        | 1:M 12 Sep 2022 06:17:39.346 * Creating AOF base file appendonly.aof.1.base.rdb on server start
-redis02        | 1:M 12 Sep 2022 06:17:39.349 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
-redis02        | 1:M 12 Sep 2022 06:17:39.349 * Ready to accept connections
-redis01        | 1:M 12 Sep 2022 06:17:39.506 # configEpoch set to 1 via CLUSTER SET-CONFIG-EPOCH
-redis02        | 1:M 12 Sep 2022 06:17:39.507 # configEpoch set to 2 via CLUSTER SET-CONFIG-EPOCH
-redis03        | 1:M 12 Sep 2022 06:17:39.507 # configEpoch set to 3 via CLUSTER SET-CONFIG-EPOCH
-redis04        | 1:M 12 Sep 2022 06:17:39.508 # configEpoch set to 4 via CLUSTER SET-CONFIG-EPOCH
-redis05        | 1:M 12 Sep 2022 06:17:39.509 # configEpoch set to 5 via CLUSTER SET-CONFIG-EPOCH
-redis06        | 1:M 12 Sep 2022 06:17:39.509 # configEpoch set to 6 via CLUSTER SET-CONFIG-EPOCH
-redis01        | 1:M 12 Sep 2022 06:17:39.513 # IP address for this node updated to 173.17.0.2
-redis05        | 1:M 12 Sep 2022 06:17:39.517 # IP address for this node updated to 173.17.0.6
-redis02        | 1:M 12 Sep 2022 06:17:39.618 # IP address for this node updated to 173.17.0.3
-redis03        | 1:M 12 Sep 2022 06:17:39.618 # IP address for this node updated to 173.17.0.4
-redis06        | 1:M 12 Sep 2022 06:17:39.618 # IP address for this node updated to 173.17.0.7
-redis04        | 1:M 12 Sep 2022 06:17:39.618 # IP address for this node updated to 173.17.0.5
-redis_cluster  | >>> Performing hash slots allocation on 6 nodes...
-redis_cluster  | Master[0] -> Slots 0 - 5460
-redis_cluster  | Master[1] -> Slots 5461 - 10922
-redis_cluster  | Master[2] -> Slots 10923 - 16383
-redis_cluster  | Adding replica 173.17.0.6:7005 to 173.17.0.2:7001
-redis_cluster  | Adding replica 173.17.0.7:7006 to 173.17.0.3:7002
-redis_cluster  | Adding replica 173.17.0.5:7004 to 173.17.0.4:7003
-redis_cluster  | M: f1f993c453b358e7858b4946d0cfbe53df1b0d1c 173.17.0.2:7001
-redis_cluster  |    slots:[0-5460] (5461 slots) master
-redis_cluster  | M: 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50 173.17.0.3:7002
-redis_cluster  |    slots:[5461-10922] (5462 slots) master
-redis_cluster  | M: ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5 173.17.0.4:7003
-redis_cluster  |    slots:[10923-16383] (5461 slots) master
-redis_cluster  | S: e74049c7d4ac68ead6fbb7d240995adec1dbe443 173.17.0.5:7004
-redis_cluster  |    replicates ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5
-redis_cluster  | S: ca721ac17767523dfdeaeafd93007063f0753170 173.17.0.6:7005
-redis_cluster  |    replicates f1f993c453b358e7858b4946d0cfbe53df1b0d1c
-redis_cluster  | S: 9e267dec00ae0e623eef7379f1ddd010f46ea57f 173.17.0.7:7006
-redis_cluster  |    replicates 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50
-redis_cluster  | >>> Nodes configuration updated
-redis_cluster  | >>> Assign a different config epoch to each node
-redis_cluster  | >>> Sending CLUSTER MEET messages to join the cluster
-redis_cluster  | Waiting for the cluster to join
-redis01        | 1:M 12 Sep 2022 06:17:41.058 # Cluster state changed: ok
-redis04        | 1:M 12 Sep 2022 06:17:41.192 # Cluster state changed: ok
-redis03        | 1:M 12 Sep 2022 06:17:41.260 # Cluster state changed: ok
-redis05        | 1:M 12 Sep 2022 06:17:41.337 # Cluster state changed: ok
-redis06        | 1:M 12 Sep 2022 06:17:41.337 # Cluster state changed: ok
-redis02        | 1:M 12 Sep 2022 06:17:41.359 # Cluster state changed: ok
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * Connecting to MASTER 173.17.0.4:7003
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * MASTER <-> REPLICA sync started
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * Non blocking connect for SYNC fired the event.
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * Master replied to PING, replication can continue...
-redis05        | 1:S 12 Sep 2022 06:17:41.512 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.
-redis05        | 1:S 12 Sep 2022 06:17:41.512 * Connecting to MASTER 173.17.0.2:7001
-redis03        | 1:M 12 Sep 2022 06:17:41.512 * Replica 173.17.0.5:7004 asks for synchronization
-redis03        | 1:M 12 Sep 2022 06:17:41.512 * Partial resynchronization not accepted: Replication ID mismatch (Replica asked for '02cc6c737d5d5254d8ae3ed622243aa84b3acfac', my replication IDs are '6a60e46486a6c49611937bc0ea0700d521ff4cf9' and '0000000000000000000000000000000000000000')
-redis03        | 1:M 12 Sep 2022 06:17:41.512 * Replication backlog created, my new replication IDs are 'd6c6da52082ff48324f0756a3d6cd2f8f0e04a39' and '0000000000000000000000000000000000000000'
-redis04        | 1:S 12 Sep 2022 06:17:41.512 * Trying a partial resynchronization (request 02cc6c737d5d5254d8ae3ed622243aa84b3acfac:1).
-redis03        | 1:M 12 Sep 2022 06:17:41.512 * Delay next BGSAVE for diskless SYNC
-redis05        | 1:S 12 Sep 2022 06:17:41.512 * MASTER <-> REPLICA sync started
-redis05        | 1:S 12 Sep 2022 06:17:41.513 * Non blocking connect for SYNC fired the event.
-redis05        | 1:S 12 Sep 2022 06:17:41.513 * Master replied to PING, replication can continue...
-redis01        | 1:M 12 Sep 2022 06:17:41.513 * Replica 173.17.0.6:7005 asks for synchronization
-redis01        | 1:M 12 Sep 2022 06:17:41.513 * Partial resynchronization not accepted: Replication ID mismatch (Replica asked for '0697cbecf0f422db4b6d20307c9dc93cfa525f77', my replication IDs are 'fe11beffb46c2c5d41f6243f38159af8a9a03c59' and '0000000000000000000000000000000000000000')
-redis01        | 1:M 12 Sep 2022 06:17:41.513 * Replication backlog created, my new replication IDs are '198118915aad9ea51431a4fffc4f88be031ea07e' and '0000000000000000000000000000000000000000'
-redis05        | 1:S 12 Sep 2022 06:17:41.513 * Trying a partial resynchronization (request 0697cbecf0f422db4b6d20307c9dc93cfa525f77:1).
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * Connecting to MASTER 173.17.0.3:7002
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * MASTER <-> REPLICA sync started
-redis02        | 1:M 12 Sep 2022 06:17:41.513 * Replica 173.17.0.7:7006 asks for synchronization
-redis02        | 1:M 12 Sep 2022 06:17:41.513 * Partial resynchronization not accepted: Replication ID mismatch (Replica asked for 'a3676c829270f61d144b4bb4945a3c9ec943238c', my replication IDs are 'f1f39200ada4c086ba889630bfc5ce76934e06e7' and '0000000000000000000000000000000000000000')
-redis02        | 1:M 12 Sep 2022 06:17:41.513 * Replication backlog created, my new replication IDs are '6535814a51a8cbea8899f25dbe0f9ca87d4a147a' and '0000000000000000000000000000000000000000'
-redis01        | 1:M 12 Sep 2022 06:17:41.513 * Delay next BGSAVE for diskless SYNC
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * Non blocking connect for SYNC fired the event.
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * Master replied to PING, replication can continue...
-redis06        | 1:S 12 Sep 2022 06:17:41.513 * Trying a partial resynchronization (request a3676c829270f61d144b4bb4945a3c9ec943238c:1).
-redis02        | 1:M 12 Sep 2022 06:17:41.513 * Delay next BGSAVE for diskless SYNC
-redis_cluster  | .
-redis_cluster  | >>> Performing Cluster Check (using node 173.17.0.2:7001)
-redis_cluster  | M: f1f993c453b358e7858b4946d0cfbe53df1b0d1c 173.17.0.2:7001
-redis_cluster  |    slots:[0-5460] (5461 slots) master
-redis_cluster  |    1 additional replica(s)
-redis_cluster  | M: 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50 173.17.0.3:7002
-redis_cluster  |    slots:[5461-10922] (5462 slots) master
-redis_cluster  |    1 additional replica(s)
-redis_cluster  | S: ca721ac17767523dfdeaeafd93007063f0753170 173.17.0.6:7005
-redis_cluster  |    slots: (0 slots) slave
-redis_cluster  |    replicates f1f993c453b358e7858b4946d0cfbe53df1b0d1c
-redis_cluster  | M: ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5 173.17.0.4:7003
-redis_cluster  |    slots:[10923-16383] (5461 slots) master
-redis_cluster  |    1 additional replica(s)
-redis_cluster  | S: e74049c7d4ac68ead6fbb7d240995adec1dbe443 173.17.0.5:7004
-redis_cluster  |    slots: (0 slots) slave
-redis_cluster  |    replicates ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5
-redis_cluster  | S: 9e267dec00ae0e623eef7379f1ddd010f46ea57f 173.17.0.7:7006
-redis_cluster  |    slots: (0 slots) slave
-redis_cluster  |    replicates 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50
-redis_cluster  | [OK] All nodes agree about slots configuration.
-redis_cluster  | >>> Check for open slots...
-redis_cluster  | >>> Check slots coverage...
-redis_cluster  | [OK] All 16384 slots covered.
-redis_cluster exited with code 0
-redis05        | 1:S 12 Sep 2022 06:17:46.084 * Full resync from master: 198118915aad9ea51431a4fffc4f88be031ea07e:0
-redis01        | 1:M 12 Sep 2022 06:17:46.084 * Starting BGSAVE for SYNC with target: replicas sockets
-redis05        | 1:S 12 Sep 2022 06:17:46.088 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk
-redis05        | 1:S 12 Sep 2022 06:17:46.089 * Discarding previously cached master state.
-redis05        | 1:S 12 Sep 2022 06:17:46.089 * MASTER <-> REPLICA sync: Flushing old data
-redis05        | 1:S 12 Sep 2022 06:17:46.089 * MASTER <-> REPLICA sync: Loading DB in memory
-redis01        | 1:M 12 Sep 2022 06:17:46.085 * Background RDB transfer started by pid 21
-redis01        | 21:C 12 Sep 2022 06:17:46.088 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
-redis01        | 1:M 12 Sep 2022 06:17:46.088 # Diskless rdb transfer, done reading from pipe, 1 replicas still up.
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * Loading RDB produced by version 7.0.4
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * RDB age 0 seconds
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * RDB memory usage when created 1.77 Mb
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * Done loading RDB, keys loaded: 0, keys expired: 0.
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * MASTER <-> REPLICA sync: Finished with success
-redis05        | 1:S 12 Sep 2022 06:17:46.094 * Creating AOF incr file temp-appendonly.aof.incr on background rewrite
-redis05        | 1:S 12 Sep 2022 06:17:46.095 * Background append only file rewriting started by pid 21
-redis01        | 1:M 12 Sep 2022 06:17:46.095 * Background RDB transfer terminated with success
-redis01        | 1:M 12 Sep 2022 06:17:46.095 * Streamed RDB transfer with replica 173.17.0.6:7005 succeeded (socket). Waiting for REPLCONF ACK from slave to enable streaming
-redis01        | 1:M 12 Sep 2022 06:17:46.095 * Synchronization with replica 173.17.0.6:7005 succeeded
-redis05        | 21:C 12 Sep 2022 06:17:46.097 * Successfully created the temporary AOF base file temp-rewriteaof-bg-21.aof
-redis05        | 21:C 12 Sep 2022 06:17:46.097 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
-redis05        | 1:S 12 Sep 2022 06:17:46.184 * Background AOF rewrite terminated with success
-redis05        | 1:S 12 Sep 2022 06:17:46.184 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-21.aof into appendonly.aof.2.base.rdb
-redis05        | 1:S 12 Sep 2022 06:17:46.184 * Successfully renamed the temporary AOF incr file temp-appendonly.aof.incr into appendonly.aof.2.incr.aof
-redis05        | 1:S 12 Sep 2022 06:17:46.188 * Removing the history file appendonly.aof.1.incr.aof in the background
-redis05        | 1:S 12 Sep 2022 06:17:46.188 * Removing the history file appendonly.aof.1.base.rdb in the background
-redis05        | 1:S 12 Sep 2022 06:17:46.191 * Background AOF rewrite finished successfully
-redis03        | 1:M 12 Sep 2022 06:17:46.285 * Starting BGSAVE for SYNC with target: replicas sockets
-redis04        | 1:S 12 Sep 2022 06:17:46.285 * Full resync from master: d6c6da52082ff48324f0756a3d6cd2f8f0e04a39:0
-redis03        | 1:M 12 Sep 2022 06:17:46.285 * Background RDB transfer started by pid 21
-redis04        | 1:S 12 Sep 2022 06:17:46.286 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk
-redis03        | 21:C 12 Sep 2022 06:17:46.286 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
-redis03        | 1:M 12 Sep 2022 06:17:46.286 # Diskless rdb transfer, done reading from pipe, 1 replicas still up.
-redis04        | 1:S 12 Sep 2022 06:17:46.287 * Discarding previously cached master state.
-redis04        | 1:S 12 Sep 2022 06:17:46.287 * MASTER <-> REPLICA sync: Flushing old data
-redis04        | 1:S 12 Sep 2022 06:17:46.287 * MASTER <-> REPLICA sync: Loading DB in memory
-redis03        | 1:M 12 Sep 2022 06:17:46.290 * Background RDB transfer terminated with success
-redis03        | 1:M 12 Sep 2022 06:17:46.290 * Streamed RDB transfer with replica 173.17.0.5:7004 succeeded (socket). Waiting for REPLCONF ACK from slave to enable streaming
-redis03        | 1:M 12 Sep 2022 06:17:46.290 * Synchronization with replica 173.17.0.5:7004 succeeded
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * Loading RDB produced by version 7.0.4
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * RDB age 0 seconds
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * RDB memory usage when created 1.79 Mb
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * Done loading RDB, keys loaded: 0, keys expired: 0.
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * MASTER <-> REPLICA sync: Finished with success
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * Creating AOF incr file temp-appendonly.aof.incr on background rewrite
-redis04        | 1:S 12 Sep 2022 06:17:46.290 * Background append only file rewriting started by pid 22
-redis04        | 22:C 12 Sep 2022 06:17:46.292 * Successfully created the temporary AOF base file temp-rewriteaof-bg-22.aof
-redis04        | 22:C 12 Sep 2022 06:17:46.293 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
-redis04        | 1:S 12 Sep 2022 06:17:46.370 * Background AOF rewrite terminated with success
-redis04        | 1:S 12 Sep 2022 06:17:46.370 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-22.aof into appendonly.aof.2.base.rdb
-redis04        | 1:S 12 Sep 2022 06:17:46.370 * Successfully renamed the temporary AOF incr file temp-appendonly.aof.incr into appendonly.aof.2.incr.aof
-redis04        | 1:S 12 Sep 2022 06:17:46.373 * Removing the history file appendonly.aof.1.incr.aof in the background
-redis04        | 1:S 12 Sep 2022 06:17:46.373 * Removing the history file appendonly.aof.1.base.rdb in the background
-redis04        | 1:S 12 Sep 2022 06:17:46.375 * Background AOF rewrite finished successfully
-redis02        | 1:M 12 Sep 2022 06:17:46.386 * Starting BGSAVE for SYNC with target: replicas sockets
-redis06        | 1:S 12 Sep 2022 06:17:46.386 * Full resync from master: 6535814a51a8cbea8899f25dbe0f9ca87d4a147a:0
-redis02        | 1:M 12 Sep 2022 06:17:46.386 * Background RDB transfer started by pid 21
-redis06        | 1:S 12 Sep 2022 06:17:46.387 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk
-redis02        | 21:C 12 Sep 2022 06:17:46.387 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
-redis02        | 1:M 12 Sep 2022 06:17:46.387 # Diskless rdb transfer, done reading from pipe, 1 replicas still up.
-redis06        | 1:S 12 Sep 2022 06:17:46.387 * Discarding previously cached master state.
-redis06        | 1:S 12 Sep 2022 06:17:46.387 * MASTER <-> REPLICA sync: Flushing old data
-redis06        | 1:S 12 Sep 2022 06:17:46.388 * MASTER <-> REPLICA sync: Loading DB in memory
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * Loading RDB produced by version 7.0.4
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * RDB age 0 seconds
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * RDB memory usage when created 1.79 Mb
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * Done loading RDB, keys loaded: 0, keys expired: 0.
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * MASTER <-> REPLICA sync: Finished with success
-redis06        | 1:S 12 Sep 2022 06:17:46.390 * Creating AOF incr file temp-appendonly.aof.incr on background rewrite
-redis02        | 1:M 12 Sep 2022 06:17:46.391 * Background RDB transfer terminated with success
-redis02        | 1:M 12 Sep 2022 06:17:46.391 * Streamed RDB transfer with replica 173.17.0.7:7006 succeeded (socket). Waiting for REPLCONF ACK from slave to enable streaming
-redis02        | 1:M 12 Sep 2022 06:17:46.391 * Synchronization with replica 173.17.0.7:7006 succeeded
-redis06        | 1:S 12 Sep 2022 06:17:46.391 * Background append only file rewriting started by pid 22
-redis06        | 22:C 12 Sep 2022 06:17:46.392 * Successfully created the temporary AOF base file temp-rewriteaof-bg-22.aof
-redis06        | 22:C 12 Sep 2022 06:17:46.392 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
-redis06        | 1:S 12 Sep 2022 06:17:46.485 * Background AOF rewrite terminated with success
-redis06        | 1:S 12 Sep 2022 06:17:46.485 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-22.aof into appendonly.aof.2.base.rdb
-redis06        | 1:S 12 Sep 2022 06:17:46.485 * Successfully renamed the temporary AOF incr file temp-appendonly.aof.incr into appendonly.aof.2.incr.aof
-redis06        | 1:S 12 Sep 2022 06:17:46.489 * Removing the history file appendonly.aof.1.incr.aof in the background
-redis06        | 1:S 12 Sep 2022 06:17:46.489 * Removing the history file appendonly.aof.1.base.rdb in the background
-redis06        | 1:S 12 Sep 2022 06:17:46.493 * Background AOF rewrite finished successfully
- 
-
-Check
-
-$ docker exec -it redis01 redis-cli -p 7001
-닫기
-127.0.0.1:7001> cluster info
-cluster_state:ok
-cluster_slots_assigned:16384
-cluster_slots_ok:16384
-cluster_slots_pfail:0
-cluster_slots_fail:0
-cluster_known_nodes:6
-cluster_size:3
-cluster_current_epoch:6
-cluster_my_epoch:1
-cluster_stats_messages_ping_sent:367
-cluster_stats_messages_pong_sent:360
-cluster_stats_messages_sent:727
-cluster_stats_messages_ping_received:355
-cluster_stats_messages_pong_received:367
-cluster_stats_messages_meet_received:5
-cluster_stats_messages_received:727
-total_cluster_links_buffer_limit_exceeded:0
-127.0.0.1:7001> cluster nodes
-73b4d636e7c4b0e6d28e01ea1347a503bd15ab50 173.17.0.3:7002@17002 master - 0 1662963608000 2 connected 5461-10922
-ca721ac17767523dfdeaeafd93007063f0753170 173.17.0.6:7005@17005 slave f1f993c453b358e7858b4946d0cfbe53df1b0d1c 0 1662963607000 1 connected
-ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5 173.17.0.4:7003@17003 master - 0 1662963607782 3 connected 10923-16383
-e74049c7d4ac68ead6fbb7d240995adec1dbe443 173.17.0.5:7004@17004 slave ea3f1551ab7f945bb714d7f94aa2c3fc7d8dbdd5 0 1662963608285 3 connected
-9e267dec00ae0e623eef7379f1ddd010f46ea57f 173.17.0.7:7006@17006 slave 73b4d636e7c4b0e6d28e01ea1347a503bd15ab50 0 1662963608285 2 connected
-f1f993c453b358e7858b4946d0cfbe53df1b0d1c 173.17.0.2:7001@17001 myself,master - 0 1662963607000 1 connected 0-5460
- 
-
-Test
-
-$ docker exec -it redis01 redis-cli -c -h 173.17.0.2 -p 7001
-173.17.0.2:7001> set a "testa"
--> Redirected to slot [15495] located at 173.17.0.4:7003
-OK
-173.17.0.4:7003> set b "testb"
--> Redirected to slot [3300] located at 173.17.0.2:7001
-OK
-173.17.0.2:7001> set d "testd"
--> Redirected to slot [11298] located at 173.17.0.4:7003
-OK
-173.17.0.4:7003> get a
-"testa"
-173.17.0.4:7003> get b
--> Redirected to slot [3300] located at 173.17.0.2:7001
-"testb"
-173.17.0.3:7002> get d
--> Redirected to slot [11298] located at 173.17.0.4:7003
-"testd"
- 
-
-후기
-이전에 Redis에 대한 내용을 다루어보아서 Docker로 로컬 환경에서 생성해보는 연습을 해보았습니다.
-
-개인적으로 docker-compose 구성보다 kubernetes가 쉽다고 생각되어, 조만간 쿠버네티스로 올려보고 redis 공부를 마무리해보려고 합니다.
+```

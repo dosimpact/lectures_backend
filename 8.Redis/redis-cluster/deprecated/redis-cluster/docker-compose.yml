@@ -1,0 +1,108 @@
+version: '3.7'
+services:
+  node01:
+    image: redis:7.0.4
+    container_name: redis01
+    restart: always
+    ports:
+      - 7001:7001
+    volumes:
+      - ./cluster/node01.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.2
+
+  node02:
+    image: redis:7.0.4
+    container_name: redis02
+    restart: always
+    ports:
+      - 7002:7002
+    volumes:
+      - ./cluster/node02.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.3
+
+  node03:
+    image: redis:7.0.4
+    container_name: redis03
+    restart: always
+    ports:
+      - 7003:7003
+    volumes:
+      - ./cluster/node03.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.4
+
+  node04:
+    image: redis:7.0.4
+    container_name: redis04
+    restart: always
+    ports:
+      - 7004:7004
+    volumes:
+      - ./cluster/node04.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.5
+
+  node05:
+    image: redis:7.0.4
+    container_name: redis05
+    restart: always
+    ports:
+      - 7005:7005
+    volumes:
+      - ./cluster/node05.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.6
+
+  node06:
+    image: redis:7.0.4
+    container_name: redis06
+    restart: always
+    ports:
+      - 7006:7006
+    volumes:
+      - ./cluster/node06.conf:/etc/redis/redis.conf
+    command:
+      redis-server /etc/redis/redis.conf
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.7
+
+  redis_cluster:
+    image: redis:7.0.4
+    container_name: redis_cluster
+    platform: linux/arm64/v8
+    command: redis-cli --cluster create 173.17.0.2:7001 173.17.0.3:7002 173.17.0.4:7003 173.17.0.5:7004 173.17.0.6:7005 173.17.0.7:7006 --cluster-yes --cluster-replicas 1
+    depends_on:
+      - node01
+      - node02
+      - node03
+      - node04
+      - node05
+      - node06
+    networks:
+      redis_cluster:
+        ipv4_address: 173.17.0.8
+networks:
+  redis_cluster:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 173.17.0.0/24

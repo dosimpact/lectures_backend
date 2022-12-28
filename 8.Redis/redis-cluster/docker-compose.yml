@@ -1,108 +1,67 @@
 version: '3.7'
 services:
-  node01:
-    image: redis:7.0.4
-    container_name: redis01
-    restart: always
+  node1:
+    container_name: node1
+    image: redis
+    volumes:      
+      - ./cluster/node01.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
     ports:
       - 7001:7001
-    volumes:
-      - ./cluster/node01.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.2
-
-  node02:
-    image: redis:7.0.4
-    container_name: redis02
-    restart: always
-    ports:
       - 7002:7002
+      - 7003:7003
+      - 7004:7004
+      - 7005:7005
+      - 7006:7006
+  node2:
+    network_mode: "service:node1"
+    container_name: node2
+    image: redis
     volumes:
       - ./cluster/node02.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.3
+    command: redis-server /etc/redis/redis.conf
 
-  node03:
-    image: redis:7.0.4
-    container_name: redis03
-    restart: always
-    ports:
-      - 7003:7003
+  node3:
+    network_mode: "service:node1"
+    container_name: node3
+    image: redis
     volumes:
       - ./cluster/node03.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.4
+    command: redis-server /etc/redis/redis.conf
 
-  node04:
-    image: redis:7.0.4
-    container_name: redis04
-    restart: always
-    ports:
-      - 7004:7004
+  node4:
+    network_mode: "service:node1"
+    container_name: node4
+    image: redis
     volumes:
       - ./cluster/node04.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.5
+    command: redis-server /etc/redis/redis.conf
 
-  node05:
-    image: redis:7.0.4
-    container_name: redis05
-    restart: always
-    ports:
-      - 7005:7005
+  node5:
+    network_mode: "service:node1"
+    container_name: node5
+    image: redis
     volumes:
       - ./cluster/node05.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.6
+    command: redis-server /etc/redis/redis.conf
 
-  node06:
-    image: redis:7.0.4
-    container_name: redis06
-    restart: always
-    ports:
-      - 7006:7006
+  node6:
+    network_mode: "service:node1"
+    container_name: node6
+    image: redis
     volumes:
       - ./cluster/node06.conf:/etc/redis/redis.conf
-    command:
-      redis-server /etc/redis/redis.conf
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.7
-
-  redis_cluster:
-    image: redis:7.0.4
-    container_name: redis_cluster
-    platform: linux/arm64/v8
-    command: redis-cli --cluster create 173.17.0.2:7001 173.17.0.3:7002 173.17.0.4:7003 173.17.0.5:7004 173.17.0.6:7005 173.17.0.7:7006 --cluster-yes --cluster-replicas 1
+    command: redis-server /etc/redis/redis.conf
+    
+  redis-cluster-entry:
+    network_mode: "service:node1"
+    image: redis
+    container_name: redis-cluster
+    command: redis-cli --cluster create 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006 --cluster-replicas 1 --cluster-yes
     depends_on:
-      - node01
-      - node02
-      - node03
-      - node04
-      - node05
-      - node06
-    networks:
-      redis_cluster:
-        ipv4_address: 173.17.0.8
-networks:
-  redis_cluster:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 173.17.0.0/24
+      - node1
+      - node2
+      - node3
+      - node4
+      - node5
+      - node6
