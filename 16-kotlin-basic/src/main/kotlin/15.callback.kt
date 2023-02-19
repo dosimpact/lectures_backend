@@ -1,4 +1,5 @@
 // 15. callback
+// - 고차함수 : 함수를 변수처럼 취급해서, 함수의 인자로 함수를 받는다.
 // - 출력이 없으면 void 가 아니라 Unit 이다.
 fun callbackFunc(cb: () -> Unit) {
     println("--> callbackFunc is done")

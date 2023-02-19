@@ -8,7 +8,7 @@ class Person(
 ) {
     // 1.3 equals와 hashCode 는 같이 정의한다.
     // equals만 재정의 하면, hash 값을 사용하는 Collection(HashSet, HashMap, HashTable)을 사용할 때 문제가 발생.
-    // IDE 기능 지원 : command + N
+    // IDE 기능 지원 : command + N -> override 함수 제너레이팅 가능
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -45,7 +45,7 @@ data class Animal(
         private set
         get() = "hobby is ${field}"
 
-    // 2.1 생성자 이후 실행되는 함수
+    // 2.2 생성자 이후 실행되는 함수
     init {
         print("[info] animal is created")
     }

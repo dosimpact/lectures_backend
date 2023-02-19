@@ -5,6 +5,7 @@ import kotlin.system.measureTimeMillis
 /*
 https://jsonobject.tistory.com/606
 build.gradle.kts : 프로젝트 루트의 build.gradle.kts에 아래 내용을 추가한다.
+ - coroutines 를 사용하는 전역 셋팅이 완료.
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
@@ -32,7 +33,7 @@ suspend fun doSomethingUsefulTwo(): Int {
 fun main() {
     // [1] 현재 쓰레드에서 코루틴을 실행할 수 있는 상태로 전환
     runBlocking {
-        val time = measureTimeMillis {
+        val time = measureTimeMillis { // 시간 측정
             val result = doSomethingUsefulOne() + doSomethingUsefulTwo()
             println("13 + 29 는 $result 입니다")
         }
