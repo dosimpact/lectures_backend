@@ -7,5 +7,6 @@
     "ts": "ts-node"
   },
   "watch": ["src"],
-  "ext": "js,json,ts"
+  "ext": "js,json,ts",
+  "delay": 1500
 }
