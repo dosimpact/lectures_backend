@@ -7,15 +7,28 @@ const PORT = process.env.PORT || 5050;
 
 const INDEX_1GM = 10_000_000;
 
-function* dataProvider(cursor) {
-  for (let index = 0; index <= 100; index++) {
+// function* dataProvider(cursor) {
+//   for (let index = 0; index < 100; index++) {
+//     const data = {
+//       id: randomUUID(),
+//       name: `User-${cursor}-${index}`,
+//       at: Date.now(),
+//     };
+//     yield data;
+//   }
+// }
+
+function dataProvider(cursor) {
+  const buffer = [];
+  for (let index = 0; index < 100; index++) {
     const data = {
       id: randomUUID(),
       name: `User-${cursor}-${index}`,
       at: Date.now(),
     };
-    yield data;
+    buffer.push(data);
   }
+  return buffer;
 }
 
 const bootstrap = async () => {
@@ -25,9 +38,10 @@ const bootstrap = async () => {
     const readableStream = Readable({
       read() {
         console.log("-->read event -- ", this.currentCursor);
-        for (const data of dataProvider(this.currentCursor)) {
-          this.push(JSON.stringify(data).concat("\n"));
-        }
+        // for (const data of dataProvider(this.currentCursor)) {
+        //   this.push(JSON.stringify(data).concat("\n"));
+        // }
+        this.push(JSON.stringify(dataProvider(this.currentCursor)));
         this.currentCursor += 1;
         if (this.currentCursor >= 20) {
           this.push(null); // finished

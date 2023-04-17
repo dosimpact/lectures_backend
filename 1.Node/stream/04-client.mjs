@@ -13,19 +13,17 @@ const stream = await getHttpStream();
 stream
   .pipe(
     Transform({
-      readableObjectMode: true,
-      writableObjectMode: true,
+      // writableObjectMode: true,
+      // readableObjectMode: true,
       transform(chunk, enc, cb) {
-        console.log("-->chunk", chunk);
-
         const item = JSON.parse(chunk);
-        console.log("chunk", JSON.parse(chunk));
-
-        const myNumber = /\d+/.exec(item.name)[0];
-        const isEven = myNumber % 2 === 0;
-        item.name = item.name.concat(isEven ? " is even" : " is odd");
-
-        cb(null, JSON.stringify(item));
+        console.log("-->item", item.length);
+        for (const el of item) {
+          const myNumber = /\d+/.exec(el.name)[0];
+          const isEven = myNumber % 2 === 0;
+          el.name = el.name.concat(isEven ? " is even" : " is odd");
+        }
+        cb(null);
       },
     })
   )
@@ -35,3 +33,5 @@ stream
     // flag A => append data if existent
     createWriteStream("response.log", { flags: "a" })
   );
+
+// 문제점 :

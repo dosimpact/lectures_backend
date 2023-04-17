@@ -18,6 +18,7 @@
     - [eg) read file \> zip \> write file](#eg-read-file--zip--write-file)
     - [eg) read file \> zip \> progressBar \> write file](#eg-read-file--zip--progressbar--write-file)
     - [eg) read file \> zip \> passward \> progressBar \> write file](#eg-read-file--zip--passward--progressbar--write-file)
+- [Fetching Millions of Rows with Streams in Node.js](#fetching-millions-of-rows-with-streams-in-nodejs)
     - [Node.js stream 모듈은 네 종류의 스트림을 제공한다.](#nodejs-stream-모듈은-네-종류의-스트림을-제공한다)
 
 
@@ -355,6 +356,11 @@ fs.createReadStream(file)
 ```
 
 ---
+
+# Fetching Millions of Rows with Streams in Node.js
+
+https://dev.to/_patrickgod/fetching-millions-of-rows-with-streams-in-node-js-487e
+
 
 https://the-amy.tistory.com/8
 
