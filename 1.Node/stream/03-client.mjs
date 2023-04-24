@@ -8,61 +8,25 @@ const url = "http://localhost:5050/1-readable";
 
 const getHttpStream = () =>
   new Promise((resolve) => get(url, (response) => resolve(response)));
-const stream = await getHttpStream();
 
-stream
-  .pipe(
-    Transform({
-      readableObjectMode: true,
-      writableObjectMode: true,
-      transform(chunk, enc, cb) {
-        const item = JSON.parse(chunk);
-        console.log("chunk", JSON.parse(chunk));
+const httpReadableStream = await getHttpStream();
 
-        const myNumber = /\d+/.exec(item.name)[0];
-        const isEven = myNumber % 2 === 0;
-        item.name = item.name.concat(isEven ? " is even" : " is odd");
+const monitoringStream = Transform({
+  transform(chunk, enc, cb) {
+    cb(null, chunk);
+    try {
+      const res = JSON.parse(`[${chunk.toString()}]`);
+    } catch (error) {
+      // stream 이 온전한 JSON 단위로 온다는 보장이 없다.
+      // 일부는 잘려서 뒤 늦게 청크로 합류한다.
+      console.log("-->parsing error");
+    }
+  },
+});
 
-        cb(null, JSON.stringify(item));
-      },
-    })
-  )
-  .filter((chunk) => chunk.includes("even"))
-  .map((chunk) => chunk.toUpperCase() + "\n")
-  .pipe(
-    // flag A => append data if existent
-    createWriteStream("response.log", { flags: "a" })
-  );
+const fileWriteStream = createWriteStream("response.json", {
+  flags: "w",
+  encoding: "utf8",
+});
 
-// stream
-//   .pipe(
-//     Transform({
-//       objectMode: true,
-//       transform(chunk, enc, cb) {
-//         const item = JSON.parse(chunk);
-//         // console.log('chunk', JSON.parse(chunk))
-
-//         const myNumber = /\d+/.exec(item.name)[0];
-//         const isEven = myNumber % 2 === 0;
-//         item.name = item.name.concat(isEven ? " is even" : " is odd");
-
-//         cb(null, JSON.stringify(item));
-//       },
-//     })
-//   )
-//   .filter((chunk) => chunk.includes("even"))
-//   .map((chunk) => chunk.toUpperCase() + "\n")
-//   .pipe(
-//     Writable({
-//       objectMode: true,
-//       write(chunk, enc, cb) {
-//         console.log("chunk", chunk);
-//         return cb();
-//       },
-//     })
-//   )
-//   .pipe(process.stdout);
-// .pipe(
-//   // flag A => append data if existent
-//   createWriteStream("response.log", { flags: "a" })
-// );
+httpReadableStream.pipe(monitoringStream).pipe(fileWriteStream);

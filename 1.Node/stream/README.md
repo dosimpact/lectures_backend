@@ -19,7 +19,8 @@
     - [eg) read file \> zip \> progressBar \> write file](#eg-read-file--zip--progressbar--write-file)
     - [eg) read file \> zip \> passward \> progressBar \> write file](#eg-read-file--zip--passward--progressbar--write-file)
 - [Fetching Millions of Rows with Streams in Node.js](#fetching-millions-of-rows-with-streams-in-nodejs)
-    - [Node.js stream 모듈은 네 종류의 스트림을 제공한다.](#nodejs-stream-모듈은-네-종류의-스트림을-제공한다)
+  - [eg) pipeline - SQL \> pipe...](#eg-pipeline---sql--pipe)
+- [ref](#ref)
 
 
 # Node.js Stream
@@ -361,17 +362,52 @@ fs.createReadStream(file)
 
 https://dev.to/_patrickgod/fetching-millions-of-rows-with-streams-in-node-js-487e
 
+## eg) pipeline - SQL > pipe...
 
-https://the-amy.tistory.com/8
+```
+var Readable = stream.Readable;
+var i = 1;
+var s = new Readable({
+    async read(size) {
+        const result = await sequelize.query(
+            sql + ` LIMIT 1000000 OFFSET ${(i - 1) * 1000000}`, { type: sequelize.QueryTypes.SELECT });
+        this.push(JSON.stringify(result));
+        i++;
+        if (i === 5) {
+            this.push(null);
+        }
+    }
+});
+s.pipe(res);
+```
+# ref
 
-### Node.js stream 모듈은 네 종류의 스트림을 제공한다.
+NodeJs에서 streaming을 활용한 대용량 엑셀 생성하기
+- https://kyungyeon.dev/posts/69
 
-Readable stream : 파일시스템, DB 등 읽는 대상의 원천 데이터  
-Writable stream : 스트림 데이터가 모이는 곳  
+Understanding Streams in Node.js
+- https://nodesource.com/blog/understanding-streams-in-nodejs/
 
-Duplex stream : 읽기 쓰기가 모두 가능한 하이브리드 스트림,  
-- 예로 읽고쓰기가 가능한 소켓 net.socket
-- 읽기 쓰기가 독립적이며, 데이터 방향은 단방향이다.  
+Node.js Stream - 높은 퍼포먼스의 Node.js 애플리케이션 만들기
+- https://the-amy.tistory.com/8
 
-Transform stream : Duplex stream 과 같지만, 읽기 쓰기가 연결되어 있다.
+MongoDB, Node.js 및 Streams로 대량 데이터 작업!
+- https://medium.com/nerd-for-tech/transform-export-bulk-database-response-without-memory-overflow-using-mongodb-node-js-streams-bcbb3415dd9c
 
+Streaming SQL in Node.js
+- https://itnext.io/streaming-sql-in-node-js-eb419c5bd27e
+
+Nodejs Mysql 과 Stream
+- https://steemit.com/kr-dev/@ethanhur/nodejs-mysql-stream
+
+Node.js v19.9.0 documentation
+- https://nodejs.org/api/stream.html#streams-promises-api
+
+How to Process Large Files with Node.js
+- https://stateful.com/blog/process-large-files-nodejs-streams
+
+Node.js Stream 개념을 익혀보자
+- https://elvanov.com/2670
+
+node.js로 스트리밍 서버 구축하기
+- https://madchick.tistory.com/169

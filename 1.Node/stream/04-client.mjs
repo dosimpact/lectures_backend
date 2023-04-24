@@ -16,22 +16,37 @@ stream
       // writableObjectMode: true,
       // readableObjectMode: true,
       transform(chunk, enc, cb) {
-        const item = JSON.parse(chunk);
-        console.log("-->item", item.length);
-        for (const el of item) {
-          const myNumber = /\d+/.exec(el.name)[0];
-          const isEven = myNumber % 2 === 0;
-          el.name = el.name.concat(isEven ? " is even" : " is odd");
-        }
-        cb(null);
+        // console.log("-->chunk", chunk);
+        // const item = JSON.parse(chunk);
+        // console.log("-->item", Object.keys(item));
+        // console.log("-->item", Object.values(item));
+        cb(null, chunk);
+        // try {
+        // const item = JSON.parse(chunk);
+        // console.log("-->item", Object.keys(item));
+        // console.log("-->item", Object.values(item));
+        //   console.log("-->chunk", item);
+        //   cb(null, item);
+        // } catch (error) {
+        //   console.log("-->error", error);
+        //   cb(error);
+        // }
+        // for (const el of item) {
+        //   const myNumber = /\d+/.exec(el.name)[0];
+        //   const isEven = myNumber % 2 === 0;
+        //   el.name = el.name.concat(isEven ? " is even" : " is odd");
+        // }
       },
     })
   )
-  .filter((chunk) => chunk.includes("even"))
-  .map((chunk) => chunk.toUpperCase() + "\n")
+  // .filter((chunk) => {
+  //   console.log("-->", Number(chunk["cursor"]) % 2 === 0);
+  //   return Number(chunk["cursor"]) % 2 === 0;
+  // })
+  // .map((chunk) => ({ ...chunk, name: String(chunk).toUpperCase() }))
   .pipe(
     // flag A => append data if existent
-    createWriteStream("response.log", { flags: "a" })
+    createWriteStream("response.json", { flags: "w", encoding: "utf8" })
   );
 
 // 문제점 :

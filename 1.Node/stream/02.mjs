@@ -3,16 +3,19 @@ import { readFileSync, createReadStream } from "fs";
 
 const PORT = process.env.PORT || 5050;
 
+// goal
+// bigFile stream server
+
 // 1. make bigfile
 // node -e "process.stdout.write(crypto.randomBytes(1e9))" > big.file
 
-// 2. download bigfile
+// 2. download bigfile(client)
 // curl localhost:5050 --output down.file
 
 // 3. monitoring process
 // htop
 // - filter > mjs
-// - VIRT : 가상메모리 / RES : 물리메모리 사용량
+// - VIRT : 가상메모리 / RES : 물리메모리 사용량 체크
 // ls -alh
 // - check file size
 

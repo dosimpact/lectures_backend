@@ -1,5 +1,13 @@
 import { Transform } from "stream";
 
+// goal,
+// stream 의 object 모드를 사용해서, 코드로 처리 가능한 Object 단위의 스트림 파이프라인을 구성하자.
+// process.stdin            // 1.사용자의 입력
+//   .pipe(commaSplitter)   // 2.콤마로 분리 (출력=objectMode)
+//   .pipe(arrayToObject)   // 3.Object 만들기 (입출력=objectMode)
+//   .pipe(objectToString)  // 4.String으로 만들기  (입력=objectMode)
+//   .pipe(process.stdout); // 5. console 출력
+
 const commaSplitter = new Transform({
   // writableObjectMode: true, // IN - string is ok
   readableObjectMode: true, // OUT
