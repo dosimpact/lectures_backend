@@ -23,11 +23,19 @@
   - [yield](#yield)
   - [join](#join)
 - [9. 쓰레드의 동기화 / 767](#9-쓰레드의-동기화--767)
-  - [9.1 synchronized를 이용한 동기화 / 767](#91-synchronized를-이용한-동기화--767)
+  - [9.1 synchronized를 이용한 동기화](#91-synchronized를-이용한-동기화)
+    - [eg) ThreadEx21](#eg-threadex21)
+    - [eg) ThreadEx22](#eg-threadex22)
   - [9.2 wait()과 notify() / 771](#92-wait과-notify--771)
-  - [9.3 Lock과 Condition을 이용한 동기화 / 779](#93-lock과-condition을-이용한-동기화--779)
-  - [9.4 volatile / 786](#94-volatile--786)
-  - [9.5 fork & join 프레임웍 / 788](#95-fork--join-프레임웍--788)
+    - [eg) ThreadWaitEx1](#eg-threadwaitex1)
+    - [eg) ThreadWaitEx2](#eg-threadwaitex2)
+    - [eg) ThreadWaitEx3](#eg-threadwaitex3)
+  - [9.3 Lock과 Condition을 이용한 동기화](#93-lock과-condition을-이용한-동기화)
+    - [eg) ThreadWaitEx4](#eg-threadwaitex4)
+  - [9.4 volatile](#94-volatile)
+    - [멀티 코어 프로세스 별도의 캐시](#멀티-코어-프로세스-별도의-캐시)
+    - [JVM 4Byte 단위 처리](#jvm-4byte-단위-처리)
+  - [9.5 fork & join 프레임웍](#95-fork--join-프레임웍)
 
 # index
 
@@ -179,18 +187,128 @@ join: 다른 쓰레드의 작업을 기다린다.
 
 # 9. 쓰레드의 동기화 / 767
 
-쓰레드간에 shared memory를 사용하는 영역을 critical section   
-이 데이터를 잠그는 것이 lock 이다.  
+쓰레드간에 shared memory 영역을 critical section 이라고 한다.  
+이 부분에서 쓰레드간 동기화가 없다면 의도하지 않은 변수값이 들어갈 수 있다.  
+
+critical section을 잠그는 것이 lock 이다.  
+
 쓰레드 동기화 : 한 쓰레드가 진행 중인 작업을 다른 쓰레드가 간섭하지 못하도록 막는 것
 
-다양한 쓰레드 동기화를 지원하고 있다.
+다양한 쓰레드 동기화를 지원하고 있다.  
 
-## 9.1 synchronized를 이용한 동기화 / 767  
+--- 
+
+## 9.1 synchronized를 이용한 동기화
+
+매서드에 synchronized 붙이기 - 매서드 전체를 critical section 지정  
+특정 스코프에 synchronized 붙이기 - 특정 영역을 critical section 지정  
+
+### eg) ThreadEx21
+- fail case -  not synchronized critical section  
+### eg) ThreadEx22
+- success case - synchronized critical section   
+
+--- 
 
 ## 9.2 wait()과 notify() / 771  
 
-## 9.3 Lock과 Condition을 이용한 동기화 / 779 
+특정 쓰레드가 락을 오래동안 가져도 문제가 된다.
+수동으로 wait - 락 반납 대기, notify - 락 반납 필요성이 있다.  
 
-## 9.4 volatile / 786   
+notify : 임의의 하나의 쓰레드에게 통지
+- 하지만 오래 기다린 쓰레드가 락을 먼저 받는다는 보장이 없다.  
+- waiting pool에서 임의의 통지를 기다린다.  
 
-## 9.5 fork & join 프레임웍 / 788  
+notifyAll : 전체 쓰레드에게 통지
+- 모든 쓰레드가 통지를 받고, race condition에 들어간다. 
+
+waiting pool은 Object 클래스에 정의 되어 있다. 
+- 특정 객체의 waiting pool에서 대기중인 쓰레드만
+- notify, notifyAll 영향을 받는다.
+
+
+### eg) ThreadWaitEx1
+- fail case -  not synchronized critical section  
+- 예외1) Cook 쓰레드가 테이블에 음식을 놓는 중에, Customer 쓰레드가 음식을 가져가려함
+- 예외2) Customer1 쓰레드가 음식을 가져가는 도중에, Customer2가 가져가려함
+
+
+### eg) ThreadWaitEx2
+- success case - synchronized critical section  
+- new fail case - 테이블 객체에 락을 걸어 CS를 보호하지만, 락을 반납하지 않아 음식이 만들어 지지 않는다.
+
+
+### eg) ThreadWaitEx3
+- 객체에 wait, notify를 추가해서 대기상태의 쓰레드를 깨운다.
+
+starvation: 기아 현상, notify는 임의이 한 쓰레드에게 통지하므로 계속 기다리는 쓰레드가 발생 가능  
+notifyAll : 모든 쓰레드에게 통지 하도록 한다. 
+race condition : 하지만 불필요한 쓰레드까지 통지를 받아, lock을 얻기 위한 경쟁상태가 된다.
+
+Lock, Condition을 이용해서 요리사/손님 쓰레드를 구별해서 통지할 수 있다.
+
+
+?? java.util.ConcurrentModificationException  
+
+
+--- 
+
+## 9.3 Lock과 Condition을 이용한 동기화 
+
+ReentrantLock : 재진입할 수 있는 락
+- 지금까지 봤던 락과 일치하다. 특정조건에서 lock풀고 lock얻어서 작업 수행
+
+ReentrantReadWriteLock : 읽기를 위한 lock, 쓰기를 위한 lock 제공   
+- readlock : 다른 쓰레드가 중복해서 readlock을 걸고 동시에 읽어간다.
+- 하지만 readlock 걸린 상태에서 쓰기는 불가능 하다.
+- writlock : 중복해서 write lock 거는것은 허용되지 않는다. 
+
+StampedLock : ReentrantReadWriteLock에 optimistic reading lock이 추가된것
+- readlock과 다르게, optimistic read lock은 write lock에 의해 바로 풀린다.
+- 쓰기가 끝난 후에 읽기 lock을 거는 것이다.
+
+lock(): lock을 얻을때까지 블락킹이 된다.
+unlock():
+isLocked(): 
+tryLock : lock을 일정 시간동안만 기다린다. 
+
+Condition : waiting pool에 손님쓰레드와 요리사 쓰레드를 분리해서 기다리도록 한다.
+
+
+### eg) ThreadWaitEx4
+
+?? java.util.ConcurrentModificationException 왜 발생하는지  
+
+## 9.4 volatile   
+
+### 멀티 코어 프로세스 별도의 캐시
+
+멀티 코어 프로세스는 코어마다 별도의 캐시를 가지고 있다.  
+멀티 스레드 환경에서는 코어의 캐시를 먼저 읽고 없다면 메모리를 읽는다.  
+다른 스레드가 메모리 값을 바꿔버리면 불일치가 발생하고   
+volatile 키워드를 통해서, 메모리 값을 읽도록 선언한다.  
+혹은 synchronized 블록을 사용한다.  
+
+### JVM 4Byte 단위 처리  
+
+8바이트인 long, double 형은 데이터를 읽는동안 다른 스레드가 끼어들 틈이 있다.  
+이때 volatile을 변수선언에 붙인다. 읽기/쓰기가 원자화 된다.  
+
+```java
+volatile long balance; // 변수의 원자화
+
+// 잔고조회 함수에, synchronized가 없다면 withdraw 도중 값을 읽어갈 수 있다.
+synchronized int getBalance(){
+    return balance; 
+}
+
+// 함수의 원자화  
+synchronized void withdraw(int money) { 
+    if(balance >= money) {
+        balance -= money;
+    }
+}
+```
+
+
+## 9.5 fork & join 프레임웍 
