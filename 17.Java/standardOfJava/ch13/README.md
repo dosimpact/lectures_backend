@@ -18,6 +18,16 @@
   - [쓰레드의 상태](#쓰레드의-상태)
   - [라이프 싸이클](#라이프-싸이클)
     - [eg) ThreadEx12](#eg-threadex12)
+  - [interrupt](#interrupt)
+  - [suspend, resume, stop](#suspend-resume-stop)
+  - [yield](#yield)
+  - [join](#join)
+- [9. 쓰레드의 동기화 / 767](#9-쓰레드의-동기화--767)
+  - [9.1 synchronized를 이용한 동기화 / 767](#91-synchronized를-이용한-동기화--767)
+  - [9.2 wait()과 notify() / 771](#92-wait과-notify--771)
+  - [9.3 Lock과 Condition을 이용한 동기화 / 779](#93-lock과-condition을-이용한-동기화--779)
+  - [9.4 volatile / 786](#94-volatile--786)
+  - [9.5 fork & join 프레임웍 / 788](#95-fork--join-프레임웍--788)
 
 # index
 
@@ -149,12 +159,38 @@ TERMINATED : 작업 종료
 
 
 ### eg) ThreadEx12
+- Thread.sleep(2000); 처럼 작성해야 한다. sleep은 항상 현재 실행중인 쓰레드에 영향
+
+## interrupt 
+쓰레드의 작업을 취소한다.
+
+## suspend, resume, stop
+suspend: 쓰레드를 일시정지 시킨다. 
+resume: suspend에 의해 정지된 쓰레드를 다시 실행
+stop: 쓰레드 종료
+
+## yield
+yield: 다른쓰레드에게 양보
+
+## join
+join: 다른 쓰레드의 작업을 기다린다.
 
 
---- 
-1. 쓰레드의 동기화 / 767
-9.1 synchronized를 이용한 동기화 / 767  
-9.2 wait()과 notify() / 771  
-9.3 Lock과 Condition을 이용한 동기화 / 779 
-9.4 volatile / 786   
-9.5 fork & join 프레임웍 / 788  
+
+# 9. 쓰레드의 동기화 / 767
+
+쓰레드간에 shared memory를 사용하는 영역을 critical section   
+이 데이터를 잠그는 것이 lock 이다.  
+쓰레드 동기화 : 한 쓰레드가 진행 중인 작업을 다른 쓰레드가 간섭하지 못하도록 막는 것
+
+다양한 쓰레드 동기화를 지원하고 있다.
+
+## 9.1 synchronized를 이용한 동기화 / 767  
+
+## 9.2 wait()과 notify() / 771  
+
+## 9.3 Lock과 Condition을 이용한 동기화 / 779 
+
+## 9.4 volatile / 786   
+
+## 9.5 fork & join 프레임웍 / 788  

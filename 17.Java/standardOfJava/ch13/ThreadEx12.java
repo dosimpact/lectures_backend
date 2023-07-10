@@ -7,10 +7,11 @@ class ThreadEx12 {
 		th2.start();
 
 		try {
-			th1.sleep(2000);	
+			th1.sleep(2000); // Thread.sleep
+			// Thread.sleep(2000); 처럼 작성해야 한다. sleep은 항상 현재 실행중인 쓰레드에 영향
 		} catch(InterruptedException e) {}
 
-		System.out.print("<<main ����>>");
+		System.out.print("<<main Stop>>");
 	} // main
 }
 
@@ -19,7 +20,7 @@ class ThreadEx12_1 extends Thread {
 		for(int i=0; i < 300; i++) {
 			System.out.print("-");
 		}
-		System.out.print("<<th1 ����>>");
+		System.out.print("<<th1 Stop>>");
 	} // run()
 }
 
@@ -28,6 +29,6 @@ class ThreadEx12_2 extends Thread {
 		for(int i=0; i < 300; i++) {
 			System.out.print("|");
 		}
-		System.out.print("<<th2 ����>>");
+		System.out.print("<<th2 Stop>>");
 	} // run()
 }
