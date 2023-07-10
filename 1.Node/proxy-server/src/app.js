@@ -9,10 +9,8 @@ const PORT = process.env.PORT || 4000;
 const bootstrap = async () => {
   const app = express();
 
-  app.set("trust proxy", true);
-
-  app.use(morgan('dev'));
-  app.use(cors());
+  // app.use(morgan('dev'));
+  // app.use(cors());
 
   app.set("trust proxy", true);
   app.get("/", (req, res) => {

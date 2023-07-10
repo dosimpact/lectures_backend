@@ -22,7 +22,7 @@
   - [suspend, resume, stop](#suspend-resume-stop)
   - [yield](#yield)
   - [join](#join)
-- [9. 쓰레드의 동기화 / 767](#9-쓰레드의-동기화--767)
+- [9. 쓰레드의 동기화](#9-쓰레드의-동기화)
   - [9.1 synchronized를 이용한 동기화](#91-synchronized를-이용한-동기화)
     - [eg) ThreadEx21](#eg-threadex21)
     - [eg) ThreadEx22](#eg-threadex22)
@@ -187,16 +187,16 @@ join: 다른 쓰레드의 작업을 기다린다.
 
 
 
-# 9. 쓰레드의 동기화 / 767
+# 9. 쓰레드의 동기화
 
-쓰레드간에 shared memory 영역을 critical section 이라고 한다.  
-이 부분에서 쓰레드간 동기화가 없다면 의도하지 않은 변수값이 들어갈 수 있다.  
+CS : 쓰레드간에 공유하는 자원 영역을 critical section 이라고 한다.  
+- 이 부분에서 쓰레드간 적절한 동기화가 없다면 의도하지 않은 변수값이 들어갈 수 있다.  
 
-critical section을 잠그는 것이 lock 이다.  
+lock : critical section을 잠그는 것이 lock 이다.  
 
 쓰레드 동기화 : 한 쓰레드가 진행 중인 작업을 다른 쓰레드가 간섭하지 못하도록 막는 것
+- 다양한 쓰레드 동기화를 지원하고 있다.  
 
-다양한 쓰레드 동기화를 지원하고 있다.  
 
 --- 
 

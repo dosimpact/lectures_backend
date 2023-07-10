@@ -13,7 +13,7 @@ class Account {
 		return balance;
 	}
 
-	public synchronized void withdraw(int money){ // synchronized�� �޼��带 ����ȭ
+	public synchronized void withdraw(int money){ // synchronized
 		if(balance >= money) {
 			try { Thread.sleep(1000);} catch(InterruptedException e) {}
 			balance -= money;
