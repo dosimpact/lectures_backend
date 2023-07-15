@@ -33,6 +33,7 @@ const bootstrap = async () => {
   });
 
   app.get("/2-stream", (req, res) => {
+    // HTPP 응답객체는 쓰기 가능한 객체이다.
     createReadStream("big.file").pipe(res);
   });
 
