@@ -1,4 +1,20 @@
+- [lectures\_backend](#lectures_backend)
+  - [File Structure](#file-structure)
+
 # lectures_backend
+
+Backend Side 기술을 배우고 정리 합니다.
+
+# File Structure
+
+```
+대분류 카테고리 ( eg Node.js )
+ㄴ 소분류 카테고리 ( eg Stream )
+    ㄴ docs ( 문서로 배우는 경우 > 아티클 정리 )
+    ㄴ lectures ( 강의로 배우는 경우  > 강의 내용 정리 )
+    ㄴ examples ( 프로젝트단위 예제 )
+    ㄴ src ( 예제 코드 스니펫 1,2,3, ... )
+```
 
 ```py
 from datetime import datetime
