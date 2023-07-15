@@ -27,7 +27,7 @@
 
 # Node.js 스트림에 대해 알아야 할 모든 것|| 독점 노드 18 기능 || 에릭 웬델
 
-https://www.youtube.com/watch?v=BdePYKgrMh0
+https://www.youtube.com/watch?v=BdePYKg rMh0
 
 
 Node.js 스트림 개념
