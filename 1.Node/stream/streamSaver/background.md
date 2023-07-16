@@ -13,6 +13,8 @@
 - [Service Worker API](#service-worker-api)
   - [서비스 워커의 개념과 사용법](#서비스-워커의-개념과-사용법)
   - [다른 사용법 아이디어](#다른-사용법-아이디어)
+- [질문](#질문)
+- [ref](#ref)
 
 
 # Terms
@@ -138,3 +140,27 @@ https://developer.mozilla.org/ko/docs/Web/API/Service_Worker_API
 - 특정 시간과 날짜에 반응.
 - 지오펜스 진입.
 
+# 질문
+
+스트림 다운로드를 제공하는 서버인데, 새탭에서 다운로드링크 걸면 쉽지 않은가? (pdf download)
+- 왜 서비스 워커가 다운받도록 우회해야하는가? 
+
+어떻게 파일시스템이랑 스트림이 연결되는가? fsWriteStream 이 없다...
+
+# ref
+
+Force download cross-origin file with Service Worker
+https://www.youtube.com/watch?v=hvdaJ-Kq0OI
+
+fetch API를 사용한 스트리밍 요청
+https://web.dev/i18n/ko/fetch-upload-streaming/
+
+Streams—최종 가이드
+https://web.dev/streams/#%EC%9D%BD%EA%B8%B0-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%8A%A4%ED%8A%B8%EB%A6%BC-%EB%A7%8C%EB%93%A4%EA%B8%B0
+
+Fetch stream
+https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#fetch_stream
+
+The File System Access API: simplifying access to local files
+https://developer.chrome.com/articles/file-system-access/
+https://developer.chrome.com/articles/file-system-access/#accessing-files-optimized-for-performance-from-the-origin-private-file-system
