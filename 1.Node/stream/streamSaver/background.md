@@ -1,15 +1,19 @@
 
 
+- [Stream in brwoser](#stream-in-brwoser)
+  - [eg-web-01](#eg-web-01)
+  - [eg-web-02](#eg-web-02)
+  - [eg-web-03](#eg-web-03)
+- [Stream Saver Code](#stream-saver-code)
+  - [eg-streamSaver-01](#eg-streamsaver-01)
+  - [How does it work?](#how-does-it-work)
+  - [mitm.html](#mitmhtml)
 - [Terms](#terms)
+  - [Content-Disposition](#content-disposition)
   - [(Term) Polyfill vs Ponyfill vs Transpiler](#term-polyfill-vs-ponyfill-vs-transpiler)
   - [(Term) isSecureContext](#term-issecurecontext)
   - [MIME\_types (Content-Type)](#mime_types-content-type)
 - [github](#github)
-- [Code](#code)
-  - [downloadStrategy](#downloadstrategy)
-  - [mitm.html](#mitmhtml)
-  - [How does it work?](#how-does-it-work)
-    - [solution](#solution)
 - [Service Worker API](#service-worker-api)
   - [서비스 워커의 개념과 사용법](#서비스-워커의-개념과-사용법)
   - [다른 사용법 아이디어](#다른-사용법-아이디어)
@@ -17,13 +21,99 @@
 - [ref](#ref)
 
 
+# Stream in brwoser
+
+
+## eg-web-01
+문자열을 스트림으로 만들어 DOM에 텍스트 작성  
+
+## eg-web-02
+
+응답 스트림으로 DOM에 텍스트 작성  
+
+## eg-web-03
+
+문자열을 스트림으로 만들어 특정 디렉터리에 파일 저장
+
+문제 : 하단의 download dialog 로 나오지 않음
+
+
+# Stream Saver Code
+https://github.com/jimmywarting/StreamSaver.js?
+
+
+## eg-streamSaver-01
+응답 스트림으로 다운로드 스트림으로 전송
+
+
+## How does it work?
+
+방법1. ObjectURLs + a link 
+
+stream, file, blob을 저장하는 마법같은 추상화된 함수는 아직 없다.  
+- 현재는 ObjectURLs + a link로 blob(file,image,sound..) 다운로드 링크를 만들 수 있다.
+- 하지만 stream 은 ObjectURLs을 만드는것이 불가능하다.  
+
+방법2. HTTP Content-Disposition Header 사용
+
+서버에서 스트림을 처리하는것 처럼, 브라우저에서도 스트림 다운로드를 처리하는 것이다.
+브라우저에는 우리가 생각하는 개념의 서버가 없는 대신 이 역할을 해줄 '서비스 워커'가 있다. 
+
+- 서비스 워커는 특정 네트워크 요청을 가로채어 원하는 로직으로 바꿀 수 있다.
+- respondWith() 을 사용해서 HTTP 응답 객체를 지정하면 브라우저가 다운로드 다이어로그로 처리한다.  
+  - Header name: Content-Disposition.
+  - Header value: attachment;filename=FileName.txt.
+
+
+
+구현상 문제점
+
+- 1. 서비스 워커는 secure contexts 에서만 작동  
+- 2. 서비스 워커는 작업이 없으면 5분 후 IDLE 상태로 빠짐
+
+1. StreamSaver는 mitm 만듭니다 (이는 보안 컨텍스트을 가지고, github 정적 페이지에서 호스팅되는 HTML 파일이고, 서비스 작업자를 설치하는 코드가 있다.)  
+( iframe(보안 컨텍스트에서) 또는 페이지가 안전하지 않은 경우 새 팝업에서 )   
+1. postMessage를 사용하여 스트림(또는 DataChannel)을 service worker로 전송합니다.  
+2. 그런 다음 service worker는 다운로드 링크를 만듭니다.  
+3. IDLE로 빠지지 않도록 지속적으로 Ping을 날려준다.  
+
+
+
+
+## mitm.html
+
+https://jimmywarting.github.io/StreamSaver.js/mitm.html?version=2.0.0
+
+mitm.html is the lite "man in the middle"
+
+signal the opener's messageChannel to the service worker 
+- service worker : stream 수신역할
+- 작업자는 오프너(원래의 브라우저)에게 다운로드를 시작할 링크를 열도록 지시합니다.
+
+
+
+
+
 # Terms
+
+## Content-Disposition
+
+This header activates download in the browser and sets the default name of the downloaded file.
+
+When the server sends a file supported by the client browser (such as a TXT or JPG file), the browser opens the file by default.
+If you want to ask the user to save the file, configure the Content-Disposition field to override the browser's default behavior.
+
+- Header name: Content-Disposition.
+- Header value: attachment;filename=FileName.txt.
+
+https://www.tencentcloud.com/document/product/1145/46185
+
 
 ## (Term) Polyfill vs Ponyfill vs Transpiler
 
-Transpiler는 오래된 브라우저들이 이해하지 못하는 최신 문법들을 오래된 문법으로 변경하여 브라우저들이 이해할 수 있도록 코드를 변환시켜주는 장치입니다.
-Polyfill은 전역 스코프에 브라우저가 지원하지 않는 API 또는 기능을 구현하는데 사용합니다.
-Ponyfill은 전역 스코프가 아닌 변수를 사용하여 전역 스코프에 영향 없이 브라우저가 지원하지 않는 API 또는 기능을 구현하는데 사용합니다.
+Transpiler : 오래된 브라우저들이 이해하지 못하는 최신 문법들을 오래된 문법으로 변경하여 브라우저들이 이해할 수 있도록 코드를 변환시켜주는 장치입니다.
+Polyfill : 전역 스코프에 브라우저가 지원하지 않는 API 또는 기능을 구현하는데 사용합니다.
+Ponyfill : 전역 스코프가 아닌 변수를 사용하여 전역 스코프에 영향 없이 브라우저가 지원하지 않는 API 또는 기능을 구현하는데 사용합니다.
 
 
 ## (Term) isSecureContext
@@ -49,47 +139,6 @@ https://github.com/jimmywarting/StreamSaver.js?
 - web-streams-polyfill은 이 차이를 해결
 - 기본 ReadableStream이 서비스 워커로 전송될 때 StreamSaver가 더 잘 작동하기 때문에 polyfill 대신 ponyfill을 로드하고 기존 구현을 재정의하는 것이 좋습니다.
 
-
-
-# Code
-
-## downloadStrategy
-
-iframe, navigate
-
-
-## mitm.html
-
-https://jimmywarting.github.io/StreamSaver.js/mitm.html?version=2.0.0
-
-mitm.html is the lite "man in the middle"
-
-signal the opener's messageChannel to the service worker 
-- service worker : stream 수신역할
-- 작업자는 오프너(원래의 브라우저)에게 다운로드를 시작할 링크를 열도록 지시합니다.
-
-## How does it work?
-
-stream, file, blob을 저장하는 마법같은 추상화된 함수는 아직 없다.  
-- 현재는 ObjectURLs + a link로 blob(file,image,sound..) 다운로드 링크를 만들 수 있다.
-- 하지만 stream 은 불가능하다.  
-
-서버에서 스트림을 처리하는것 처럼, 브라우저에서도 스트림 다운로드를 처리하는 것이다.
-브라우저에는 우리가 생각하는 개념의 서버가 없는 대신 이 역할을 해줄 '서비스 워커'가 있다. 
-
-
-### solution 
-- to create a service worker that can intercept request and use respondWith() and 서버의 역할 수행
-
-문제점 : 
-- 1. 서비스 워커는 secure contexts 에서만 작동  
-- 2. 서비스 워커는 작업이 없으면 5분 후 IDLE 상태로 빠짐
-
-1. StreamSaver는 mitm 만듭니다 (이는 보안 컨텍스트을 가지고, github 정적 페이지에서 호스팅되는 HTML 파일이고, 서비스 작업자를 설치하는 코드가 있다.)  
-( iframe(보안 컨텍스트에서) 또는 페이지가 안전하지 않은 경우 새 팝업에서 )   
-2. postMessage를 사용하여 스트림(또는 DataChannel)을 service worker로 전송합니다.  
-3. 그런 다음 service worker는 다운로드 링크를 만듭니다.  
-4. IDLE로 빠지지 않도록 지속적으로 Ping을 날려준다.  
 
 
 --- 

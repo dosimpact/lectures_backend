@@ -7,6 +7,7 @@ export async function downloadStreamFile({
     filename,
     filename.endsWith("zip") ? {} : { type: "text/csv;charset=utf-8" }
   );
+
   const response = await fetch(requestURL, {
     credentials: "include",
     mode: "cors",
