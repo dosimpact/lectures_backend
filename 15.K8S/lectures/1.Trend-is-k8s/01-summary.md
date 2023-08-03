@@ -1,5 +1,4 @@
 
-
 # [기초편] 기초 다지기
 
 자료 : https://kubetm.github.io/k8s/
