@@ -40,6 +40,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ### kubectl get nodes
 
 ```
+>kubectl get nodes
 NAME             STATUS   ROLES                  AGE    VERSION
 docker-desktop   Ready    control-plane,master   2d9h   v1.22.4 
 ```

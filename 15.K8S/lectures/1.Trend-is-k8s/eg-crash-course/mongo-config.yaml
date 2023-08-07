@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap # configMap 파일
+metadata: # 메타데이타, 이름은 임의로 지정
+  name: mongo-config
+data:
+  # 실제 환경설정 데이타, key-value값으로 넣으면 된다.
+  mongo-url: mongo-service
