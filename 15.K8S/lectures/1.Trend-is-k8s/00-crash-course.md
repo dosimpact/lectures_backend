@@ -1,20 +1,19 @@
-- [이점](#이점)
-- [아키텍쳐](#아키텍쳐)
-  - [마스터 노드 구성](#마스터-노드-구성)
-  - [가상 네트워크](#가상-네트워크)
-- [컴포넌트](#컴포넌트)
+- [개요](#개요)
+- [k8s의 컴포넌트](#k8s의-컴포넌트)
   - [Node \& Pod](#node--pod)
   - [Service \& Ingress](#service--ingress)
   - [ConfigMap \& Secret](#configmap--secret)
   - [Volume](#volume)
   - [Deployment \& StatefulSet](#deployment--statefulset)
 - [K8S Configuration](#k8s-configuration)
-- [Minikube 및 Kubectl - K8s 클러스터를 로컬로 설정](#minikube-및-kubectl---k8s-클러스터를-로컬로-설정)
+- [Minikube 및 Kubectl](#minikube-및-kubectl)
+  - [Minikube 설치](#minikube-설치)
     - [brew install minikube](#brew-install-minikube)
     - [minikue start, status](#minikue-start-status)
     - [minikube dashboard](#minikube-dashboard)
     - [kubectl get node](#kubectl-get-node)
     - [kubectl config get-contexts](#kubectl-config-get-contexts)
+    - [minikube service (webapp-service) --url](#minikube-service-webapp-service---url)
 - [전체 데모 프로젝트: MongoDB로 WebApp 배포](#전체-데모-프로젝트-mongodb로-webapp-배포)
   - [구성](#구성)
   - [ConfigMap : MongoDB Endpoint](#configmap--mongodb-endpoint)
@@ -31,51 +30,45 @@
 
 https://www.youtube.com/watch?v=s_o8dwzRlu4
 
+# 개요
 
 컨테이너 오케스트레이션 툴의 필요성
 - 마이크로서비스로의 전환 트랜드
 - 컨테이너 사용의 증가 
 
-
-# 이점
-
+k8s 이점
 - 고 가용성 제공 
 - 확장성 제공
 - 장애 극복 
 
-# 아키텍쳐
-
-노드 = 각각의 컴퓨터
-- 마스터 노드 = 컨트롤 플랜
-- 워커 노드 
+k8s의 아키텍쳐
+- 노드 = 각각의 컴퓨터
+- 마스터 노드 = 컨트롤 플랜 ( 노드들을 관리하는 컴퓨터 )
+- 워커 노드 (파드가 배포되는 컴퓨터들 ) 
 - *kubelet : 각 노드에는 kubelet 프로세스가 필요.
 
-## 마스터 노드 구성
+마스터 노드 구성
 
-1. API Server
-
+1. API Server : 명령어를 API로 줄 수 있다. 
 2. Controller Manage 
-
 3. Scheduler
-
 4. etcd = 백업 저장소
 
 
-## 가상 네트워크
+가상 네트워크
+- 모든 노드들을 하나로 합친 것 처럼 작동하도록 네트워크 구성
+- 프로덕션 환경에서는 적어도 2개 이상의 마스터 노드를 두도록 한다.
 
-모든 노드들을 하나로 합친 것 처럼 작동하도록 네트워크 구성
+# k8s의 컴포넌트
 
-프로덕션 환경에서는 적어도 2개 이상의 마스터 노드를 두도록 한다.
-
-# 컴포넌트
+k8s를 구성하는 오브젝트 이다.
 
 ## Node & Pod
 
-Node : 가상 혹은 물리적 머신
-
-Pod : 가장 작은 단위 유닛
-- 보통 메인 어플리케이션 하나를 두고 , 사이드 서비스를 붙여서 구성한다.
-- Pod는 쉽게 죽을 수 있다. 다시 생성되면 새로운 IP를 할당받는다.
+- Node : 가상 혹은 물리적 머신
+- Pod : 가장 작은 단위 유닛
+  - 보통 메인 어플리케이션 하나를 두고 , 사이드 서비스를 붙여서 구성한다.
+  - Pod는 쉽게 죽을 수 있다. 다시 생성되면 새로운 IP를 할당받는다.
 
 가상 네트워크
 - 각 Pod는 IP 주소를 할당 받는다.
@@ -125,60 +118,62 @@ StatefulSet
 # K8S Configuration
 
 k8s로의 접속은 마스터 노드의 API Server로부터 시작된다.  
-이곳에 접속은 Dashboard UI, API, CLI 등으로 가능하다.  
-k8s Cluster에 대한 환경설정들을 진행할 수 있다.  
+- 이곳에 접속은 Dashboard UI, API, CLI 등으로 가능하다.  
+- k8s Cluster에 대한 환경설정들을 진행할 수 있다.  
 
-요청 방법 - blueprint
+요청 방법 - blueprint 라고도 불리는 선언형파일을 혹은 내용을 보낸다. 
 - yaml, json 형식을 사용, 배포에 대한 청사진을 요청하는 것이다.
+- pod 생성해줘, service 생성해줘, pod늘려줘 등등 yaml에 명시해서 보낸다.
 
 파일 구성은 크게 3개 단락으로 존재
-
-
 eg) nginx-deployment.yaml, nginx-service.yaml
 
-1) Metadata
+1. Metadata
 
-2) Specification
+2. Specification
 - 배포에 대한 상세 스펙을 적는 곳
 - 이는 kind ( Deployment, Service ) 에 따라 다르다.
 
-3) Status : k8s가 자동으로 추가하는 상태이다.
+3. Status : k8s가 자동으로 추가하는 실제 상태이다.
 - 원하는 배포 상태와, 실제 배포상태는 다르다. 실제 배포를 적어주는 곳이다.
 - 마스터 노드의 etcd에서 실제 배포 데이터를 가져 온다.
 
 
-# Minikube 및 Kubectl - K8s 클러스터를 로컬로 설정
+---
 
-k8s의 운용환경은 여러대의 컴퓨터에서 돌아간다.
-마스터 노드와  다수의 워커노드가 필요한데, 실습환경에서 실제 컴퓨터들을 여러대 설치하는게 어렵다.
-그래서 내 컴퓨터안에 Master + Worker 노드가 있는것 처럼 작동하도록 돕는것이 minikube 이다.  
+# Minikube 및 Kubectl 
+
+필요성  
+
+- k8s의 운용환경은 여러대의 컴퓨터에서 돌아간다.
+- 마스터 노드와 다수의 워커노드가 필요한데, 실습환경에서 실제 컴퓨터들을 여러대 설치하는게 어렵다.
+- 그래서 내 컴퓨터안에 Master + Worker 노드가 있는것 처럼 작동하도록 돕는것이 minikube 이다.  
 
 kubectl 명령어는 minikube 뿐 아니라 실제 Cloud Cluster 과 상호작용 할 수 있다.
 쉽게 생각해서 minikube라는 박스는 클러스터 라고 보면 되고, 그 안에 여러대의 노드(컴퓨터)가 있는 것이다.
 
-
-
+## Minikube 설치 
 설치 & 시작 - https://minikube.sigs.k8s.io/docs/start/
 
 ### brew install minikube
 
 ```
 >brew install minikube
-
 ```
 
 minikue 안에는 도커 컨테이너 런타임 환경이 설치되어 있다.
 minikue 안의 도커는, minikue를 설치하는 컴퓨터의 도커를 이용한다.  
 이를 위해 내 컴퓨터에 도커를 설치 해야 한다. (Docker in Docker 라고 보면 된다.)
 
-
 ### minikue start, status
 
 ```
 >minikube start --driver docker
+
+(도커에서 미니큐브 노드로 접속하려면 외부에서 포트 바인딩을 해야 한다.)
 >minikube start --driver docker --ports=30100:30100
 
-
+(미니큐브 노드의 상태 체크)
 >minikube status
 minikube
 type: Control Plane
@@ -198,7 +193,7 @@ minikube dashboard
 ### kubectl get node
 
 ```
-클러스터의 모든 노드를 표시한다.
+클러스터의 모든 노드를 표시한다. 
 
 >kubectl get node
 NAME       STATUS   ROLES           AGE   VERSION
@@ -218,6 +213,21 @@ CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
 
 >kubectl config use-context docker-desktop                                                   
 Switched to context "docker-desktop".
+```
+
+### minikube service (webapp-service) --url
+
+```
+NodePort 가 30100에서 실행되고 있는데 minikube 마스터 노드에서는 응답이 오는데..
+minikube 호스트환경(외부)에서는 접근이 안된다. 아래 명령어로 터널을 열어 포트바인딩을 해줄 수 있다.
+
+>minikube service webapp-service --url
+http://127.0.0.1:59990
+
+
+> ps -ef | grep docker@127.0.0.1
+1441501931 29240 29204   0 11:21PM ttys004    0:00.08 ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -N docker@127.0.0.1 -p 58012 -i /Users/dokim639/.minikube/machines/minikube/id_rsa -L 59990:10.100.28.172:3000
+
 ```
 
 # 전체 데모 프로젝트: MongoDB로 WebApp 배포
