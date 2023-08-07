@@ -9,11 +9,12 @@
 - [Minikube 및 Kubectl](#minikube-및-kubectl)
   - [Minikube 설치](#minikube-설치)
     - [brew install minikube](#brew-install-minikube)
-    - [minikue start, status](#minikue-start-status)
+    - [minikue start, status, stop, delete](#minikue-start-status-stop-delete)
     - [minikube dashboard](#minikube-dashboard)
     - [kubectl get node](#kubectl-get-node)
     - [kubectl config get-contexts](#kubectl-config-get-contexts)
     - [minikube service (webapp-service) --url](#minikube-service-webapp-service---url)
+    - [minikube node](#minikube-node)
 - [전체 데모 프로젝트: MongoDB로 WebApp 배포](#전체-데모-프로젝트-mongodb로-webapp-배포)
   - [구성](#구성)
   - [ConfigMap : MongoDB Endpoint](#configmap--mongodb-endpoint)
@@ -165,7 +166,7 @@ minikue 안에는 도커 컨테이너 런타임 환경이 설치되어 있다.
 minikue 안의 도커는, minikue를 설치하는 컴퓨터의 도커를 이용한다.  
 이를 위해 내 컴퓨터에 도커를 설치 해야 한다. (Docker in Docker 라고 보면 된다.)
 
-### minikue start, status
+### minikue start, status, stop, delete
 
 ```
 >minikube start --driver docker
@@ -181,6 +182,14 @@ host: Running
 kubelet: Running
 apiserver: Running
 kubeconfig: Configured
+
+---
+Halt the cluster:
+>minikube stop
+
+Delete all of the minikube clusters:
+>minikube delete --all
+
 ```
 
 ### minikube dashboard
@@ -227,6 +236,25 @@ http://127.0.0.1:59990
 
 > ps -ef | grep docker@127.0.0.1
 1441501931 29240 29204   0 11:21PM ttys004    0:00.08 ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -N docker@127.0.0.1 -p 58012 -i /Users/dokim639/.minikube/machines/minikube/id_rsa -L 59990:10.100.28.172:3000
+
+---
+
+Alternatively, use kubectl to forward the port:
+> kubectl port-forward service/webapp-service 3030:3000
+
+```
+
+### minikube node 
+
+https://minikube.sigs.k8s.io/docs/commands/node/
+
+```
+아래 명령어로 노드를 추가할 수 있다. 기본적으로 worker로 실행된다. minikube start로 마스터를 만들었기 때문에
+
+>minikube node add node-1
+>minikube node add node-2
+>minikube node add node-3
+
 
 ```
 
