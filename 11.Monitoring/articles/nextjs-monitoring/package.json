@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "PORT=3000 next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "./scripts/build-docker-image.sh",
+    "docker:preview": "./scripts/preview-next.sh"
   },
   "dependencies": {
     "next": "12.3.4",
+    "prom-client": "^14.2.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },

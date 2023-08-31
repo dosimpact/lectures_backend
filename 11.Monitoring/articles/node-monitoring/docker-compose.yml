@@ -1,20 +1,30 @@
-version: "1.0.3"
+version: '1.0.3'
 
 services:
-  # app:
-  #   container_name: node-app
-  #   build:
-  #     context: .
-  #     dockerfile: ./Dockerfile
-  #   ports:
-  #     - "9090:3000"
-  #   restart: "on-failure"
   app:
-    image: next-ssg-blog:1
-    container_name: node-app
+    container_name: coin-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     ports:
-      - "9090:3000"
-    restart: "on-failure"
+      - '5050:5050'
+    restart: 'on-failure'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    depends_on:
+      - app
 
   prometheus:
     image: prom/prometheus:latest
@@ -25,9 +35,9 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
+      - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
-      - "9091:9090"
+      - '9090:9090'
 
   grafana:
     image: grafana/grafana:latest
@@ -43,4 +53,4 @@ services:
     depends_on:
       - prometheus
     ports:
-      - "9092:3000"
+      - "3000:3000"

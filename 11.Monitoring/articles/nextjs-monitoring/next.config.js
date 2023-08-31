@@ -1,4 +1,12 @@
 module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: "/metrics",
+        destination: "/prometheus",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
