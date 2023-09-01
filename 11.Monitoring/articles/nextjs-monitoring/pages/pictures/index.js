@@ -34,12 +34,14 @@ const photos = ({ photos }) => {
 
 export default photos;
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async (ctx) => {
   console.log("🚀 getServerSideProps");
   const res = await fetch(
     "https://jsonplaceholder.typicode.com/photos?_start=0&_end=10"
   );
+
   const photos = await res.json();
+
   return {
     props: {
       photos,

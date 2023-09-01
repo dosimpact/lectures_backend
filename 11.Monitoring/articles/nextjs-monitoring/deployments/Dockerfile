@@ -3,14 +3,15 @@ FROM node:alpine
 RUN mkdir -p /app
 WORKDIR /app
 
-COPY package.json .
 RUN npm install yarn -D
-RUN yarn install 
 
 COPY . /app
+RUN yarn install 
+RUN yarn build
+
 EXPOSE 3000
 
-CMD ["npm","run","start"]
+CMD ["yarn","start"]
 
 # docker build -t next-ssg-blog:1 -f ./deployments/Dockerfile . 
 # docker run -it --rm -p 3000:3000 --name next-1 next-ssg-blog:1

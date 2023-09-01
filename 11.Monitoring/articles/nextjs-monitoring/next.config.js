@@ -3,7 +3,7 @@ module.exports = {
     return [
       {
         source: "/metrics",
-        destination: "/prometheus",
+        destination: "/api/metrics",
       },
     ];
   },

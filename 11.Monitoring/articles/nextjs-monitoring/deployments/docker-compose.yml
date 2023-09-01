@@ -10,7 +10,7 @@ services:
   #     - "9090:3000"
   #   restart: "on-failure"
   app:
-    image: next-ssg-blog:1
+    image: next-ssg-blog:latest
     container_name: node-app
     ports:
       - "9090:3000"
