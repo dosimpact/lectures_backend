@@ -1,14 +1,6 @@
 version: "1.0.3"
 
 services:
-  # app:
-  #   container_name: node-app
-  #   build:
-  #     context: .
-  #     dockerfile: ./Dockerfile
-  #   ports:
-  #     - "9090:3000"
-  #   restart: "on-failure"
   app:
     image: next-ssg-blog:latest
     container_name: node-app
@@ -44,3 +36,8 @@ services:
       - prometheus
     ports:
       - "9092:3000"
+# docker compose file
+# container 생성하는 것을 yaml 파일로 정의
+# docker compose up
+# docker compose up -d
+
