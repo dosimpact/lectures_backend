@@ -6,16 +6,18 @@ import styles from "../styles/Home.module.css";
 export default function Home({ posts }) {
   console.log("posts", posts);
   return (
-    <div>
+    <div className={styles.main}>
       <HeadInfo title={"my blogs"} />
-      <h2>Welcome</h2>
-      {posts &&
-        Array.from(posts).map((post, key) => (
-          <div key={key}>
-            <h3>{post.title}</h3>
-            <div>{post.body}</div>
-          </div>
-        ))}
+      <h1 className={styles.main}>Welcome</h1>
+      <div className={styles.grid}>
+        {posts &&
+          Array.from(posts).map((post, key) => (
+            <div className={styles.card} key={key}>
+              <h3>{post.title}</h3>
+              <div>{post.body}</div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }

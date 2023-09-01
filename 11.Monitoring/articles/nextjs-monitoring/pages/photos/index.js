@@ -1,6 +1,7 @@
 import React from "react";
 import HeadInfo from "../../components/HeadInfo";
 import photosStyles from "../../styles/Photos.module.css";
+import homeStyles from "../../styles/Home.module.css";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,7 +10,7 @@ const photos = ({ photos }) => {
   return (
     <div>
       <HeadInfo title={"pages/photos(dir)"} />
-      <h2>Photos</h2>
+      <h2 className={homeStyles.main}>Photos</h2>
       <ul className={photosStyles.photos}>
         {photos &&
           Array.from(photos).map((photo) => {

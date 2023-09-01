@@ -1,11 +1,14 @@
 .navigation {
-  background-color: cadetblue;
+  background-color: #71C9CD;
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
   min-height: 30px;
+  height: 100px;
+  margin: 0;
 }
 .navigation li {
-  color: wheat;
+  color: #EDEEF0;
   margin-right: 30px;
+  font-size: 20px;
 }

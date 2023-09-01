@@ -10,6 +10,7 @@ const HeadInfo = ({ title, keyword, contents }) => {
     </Head>
   );
 };
+
 HeadInfo.defaultProps = {
   title: "My Blog",
   keyword: "blog powered by Next js",
