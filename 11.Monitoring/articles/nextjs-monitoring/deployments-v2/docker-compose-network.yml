@@ -1,0 +1,5 @@
+version: "3"
+networks:
+  external-network:
+    driver: bridge
+# docker network create mynetwork

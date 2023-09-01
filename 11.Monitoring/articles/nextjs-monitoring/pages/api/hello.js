@@ -8,7 +8,7 @@ import {
 const randomeSleep = (ms) =>
   new Promise((res, rej) => {
     const p = Math.random();
-    if (p >= 0.2) rej();
+    if (p < 0.2) rej();
 
     return setTimeout(res, Math.random() * ms);
   });
