@@ -16,3 +16,7 @@ if (!register.getMetricsAsArray.length) {
 }
 
 export default register;
+
+// http_requests_total
+// 시간 | method | route | statusCode | app
+// 2023.. | GET. | hello / 2000 |  next_app
