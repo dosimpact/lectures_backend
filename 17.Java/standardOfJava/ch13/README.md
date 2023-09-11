@@ -26,7 +26,7 @@
   - [9.1 synchronized를 이용한 동기화](#91-synchronized를-이용한-동기화)
     - [eg) ThreadEx21](#eg-threadex21)
     - [eg) ThreadEx22](#eg-threadex22)
-  - [9.2 wait()과 notify() / 771](#92-wait과-notify--771)
+  - [9.2 wait()과 notify()](#92-wait과-notify)
     - [eg) ThreadWaitEx1](#eg-threadwaitex1)
     - [eg) ThreadWaitEx2](#eg-threadwaitex2)
     - [eg) ThreadWaitEx3](#eg-threadwaitex3)
@@ -212,10 +212,14 @@ lock : critical section을 잠그는 것이 lock 이다.
 
 --- 
 
-## 9.2 wait()과 notify() / 771  
+## 9.2 wait()과 notify()
 
-특정 쓰레드가 락을 오래동안 가져도 문제가 된다.
+특정 쓰레드가 락을 오래동안 가져가는게 문제가 된다.
 수동으로 wait - 락 반납 대기, notify - 락 반납 필요성이 있다.  
+
+waiting pool은 Object 클래스에 정의 되어 있다. 
+- 특정 객체의 waiting pool에서 대기중인 쓰레드만
+- notify, notifyAll 영향을 받는다.
 
 notify : 임의의 하나의 쓰레드에게 통지
 - 하지만 오래 기다린 쓰레드가 락을 먼저 받는다는 보장이 없다.  
@@ -224,21 +228,15 @@ notify : 임의의 하나의 쓰레드에게 통지
 notifyAll : 전체 쓰레드에게 통지
 - 모든 쓰레드가 통지를 받고, race condition에 들어간다. 
 
-waiting pool은 Object 클래스에 정의 되어 있다. 
-- 특정 객체의 waiting pool에서 대기중인 쓰레드만
-- notify, notifyAll 영향을 받는다.
-
 
 ### eg) ThreadWaitEx1
 - fail case -  not synchronized critical section  
 - 예외1) Cook 쓰레드가 테이블에 음식을 놓는 중에, Customer 쓰레드가 음식을 가져가려함
 - 예외2) Customer1 쓰레드가 음식을 가져가는 도중에, Customer2가 가져가려함
 
-
 ### eg) ThreadWaitEx2
 - success case - synchronized critical section  
 - new fail case - 테이블 객체에 락을 걸어 CS를 보호하지만, 락을 반납하지 않아 음식이 만들어 지지 않는다.
-
 
 ### eg) ThreadWaitEx3
 - 객체에 wait, notify를 추가해서 대기상태의 쓰레드를 깨운다.
@@ -248,7 +246,6 @@ notifyAll : 모든 쓰레드에게 통지 하도록 한다.
 race condition : 하지만 불필요한 쓰레드까지 통지를 받아, lock을 얻기 위한 경쟁상태가 된다.
 
 Lock, Condition을 이용해서 요리사/손님 쓰레드를 구별해서 통지할 수 있다.
-
 
 ?? java.util.ConcurrentModificationException  
 
