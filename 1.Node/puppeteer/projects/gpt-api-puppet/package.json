@@ -1,0 +1,26 @@
+{
+  "name": "produce",
+  "version": "1.0.0",
+  "description": "node index.js ts-node index.ts",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "puppeteer": "^21.1.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  }
+}
