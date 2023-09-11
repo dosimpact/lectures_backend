@@ -1,0 +1,7 @@
+{
+    "exec":"ts-node src/index.ts",
+    "ext":"js,json,ts",
+    "watch":["src"],
+    "ignore":["src/docs"],
+    "delay":3000
+}

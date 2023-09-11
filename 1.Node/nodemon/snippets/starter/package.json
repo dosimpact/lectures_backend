@@ -1,0 +1,19 @@
+{
+  "name": "produce",
+  "version": "1.0.0",
+  "description": "node index.js ts-node index.ts",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  }
+}
