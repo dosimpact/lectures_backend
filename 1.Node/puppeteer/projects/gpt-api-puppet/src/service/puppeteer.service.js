@@ -364,14 +364,14 @@ export const gptAPIV2 = async ({ prompt }) => {
       prevLen = currentLen;
       cnt += 1;
       if (cnt >= 100) return false;
-      await sleep(1000);
+      await sleep(1500);
     }
   };
   // awit for done
   await waitForGPTResponse();
 
   // get last gpt data
-  await sleep(1);
+  await sleep(2000);
   await chatPage.waitForSelector("swiper-slide");
   const responseGPT = await chatPage.$$eval("swiper-slide", (elements) => {
     const length = elements?.length;
