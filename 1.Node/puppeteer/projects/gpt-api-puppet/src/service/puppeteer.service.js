@@ -276,6 +276,17 @@ export const insertInfiniteEventV2 = async () => {
     currentStatus = status;
   }, [500]);
 
+  //
+  // internvalEvent : remove button in swiper-slide
+  setInterval(async () => {
+    const status = await chatPage.evaluate(() => {
+      Array.from(document.querySelectorAll("swiper-slide")).map((el) => {
+        Array.from(el?.querySelectorAll("button")).map((bt) => bt?.remove());
+      });
+      currentStatus = status;
+    }, [500]);
+  });
+
   console.log("[info] done insertInfiniteEventV2");
 };
 
@@ -335,8 +346,9 @@ export const gptAPIV2 = async ({ prompt }) => {
     while (true) {
       const responseGPT = await chatPage.$$eval("swiper-slide", (elements) => {
         const length = elements?.length;
-        const innerText = elements[length - 1]?.innerText;
-        const innerHTML = elements[length - 1]?.innerHTML;
+        const lastEl = elements[length - 1];
+        const innerText = lastEl?.innerText;
+        const innerHTML = lastEl?.innerHTML;
         return { length, innerHTML, innerText };
       });
       const currentLen = String(responseGPT?.innerText).length;
