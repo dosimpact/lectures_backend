@@ -3,7 +3,6 @@ require("dotenv").config({ path: ".env" });
 import express from "express";
 import * as PuppeteerServier from "./service/puppeteer.service";
 import fs from "fs/promises";
-import { jsonrepair } from "jsonrepair";
 
 const PORT = process.env.PORT || 4000;
 
@@ -52,12 +51,18 @@ const promptExample2 = `
 """
 `;
 
+const promptExample3 = `
+다음 지시사항을 따라서 결과물만 출력할 것 
+- 논리적인 글을 필사하면서 문장 생성능력을 기르기 좋은걸 알려줘.
+- 300자 정도의 단락의 글
+`;
+
 const againPromptExample = `예시를 하나 더 알려줘`;
 
 const bootstrap = async () => {
   const app = express();
 
-  await PuppeteerServier.init({ headless: "new" });
+  await PuppeteerServier.init({ headless: false });
   await PuppeteerServier.openNewPage();
   await PuppeteerServier.gotoLoginPage();
   await PuppeteerServier.login();

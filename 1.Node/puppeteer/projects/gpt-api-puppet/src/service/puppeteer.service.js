@@ -234,12 +234,16 @@ export const insertInfiniteEventV2 = async () => {
       ({ submitButtonStatus }) => {
         const checkStatus = () => {
           try {
-            const btns = document
-              .querySelector("#ScrollContainer + div")
-              .querySelectorAll("button");
+            // const btns = document
+            // .querySelector("#ScrollContainer + div")
+            // .querySelectorAll("button");
 
-            const submitButtonDisabled = btns[btns.length - 1].disabled;
-            const submitButtonWidth = btns[btns.length - 1]
+            const btns = Array.from(document.querySelectorAll("button")).filter(
+              (el) => el.querySelectorAll("svg").length === 1
+            );
+
+            const submitButtonDisabled = btns[btns?.length - 1].disabled;
+            const submitButtonWidth = btns[btns?.length - 1]
               .querySelector("svg")
               .getAttribute("width");
 
@@ -286,6 +290,13 @@ export const insertInfiniteEventV2 = async () => {
       currentStatus = status;
     }, [500]);
   });
+
+  // onetime Event : selector GTP4
+  await chatPage.evaluate(() => {
+    document.querySelectorAll("button[tabindex]")?.[1]?.click();
+  });
+  const el = chatPage.$(`div[tabindex="0"]`);
+  console.log("[info] selected GPT : ", el?.innerText);
 
   console.log("[info] done insertInfiniteEventV2");
 };
@@ -364,7 +375,7 @@ export const gptAPIV2 = async ({ prompt }) => {
       prevLen = currentLen;
       cnt += 1;
       if (cnt >= 100) return false;
-      await sleep(1500);
+      await sleep(2000);
     }
   };
   // awit for done
