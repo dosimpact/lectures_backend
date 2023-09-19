@@ -1,6 +1,15 @@
 
-# [기초편] 기초 다지기
+- [섹션1 기초편 기초 다지기](#섹션1-기초편-기초-다지기)
+- [Why Kubernetes?](#why-kubernetes)
+- [VM vs Container](#vm-vs-container)
+- [Getting started - Kubernetes](#getting-started---kubernetes)
+- [Getting started - Kubernetes - 실습](#getting-started---kubernetes---실습)
+- [Kubernetes Overview](#kubernetes-overview)
+  - [Physical Machine](#physical-machine)
+  - [Object](#object)
+  - [Controller](#controller)
 
+# 섹션1 기초편 기초 다지기
 자료 : https://kubetm.github.io/k8s/
 
 
@@ -42,22 +51,30 @@ https://kubetm.github.io/k8s/02-beginner/gettingstarted/
 
 # Kubernetes Overview
 
+## Physical Machine
+
 물리적 서버 구성 : 마스터 서버 + 노드1 서버 + 노드2 서버 ... = 서버의 물리적 갯수를 늘릴 수 있다.
 이 서버들의 논리적인 공간이 하나 만들어지는데, k8s cluster 라고 한다.
 
-Namespaces : 클러스터의 공간을 독립된 분리한다.
+## Object
 
-Namespaces 안에는 Service + Pod + Pod.. 으로 구성된다. 
-- Service들은 Pod에 외부 네트워크를 연결 시켜준다.
-- Pod는 컨테이너의 묶음으로 하나의 배포 단위 이다. 
-- Volume Pod의 데이터를 두는 공용 공간 
+Namespaces : 클러스터의 공간을 논리적으로 독립된 공간으로 분리한다.  
 
-Namespaces - ResourceQuota / LimitRange : 네임스페이스 단위의 자원을 제한할 수 있다.
-Pod : ConfigMap / Secret : 환경설정값 주입
+Namespaces 안에는 Service + Pod + Pod.. 으로 구성된다.   
+- Service : Pod에 외부 네트워크를 연결 시켜준다. 
+- Pod : 컨테이너의 묶음으로 하나의 배포 단위 이다.   
+- Volume : Pod의 데이터를 두는 공용 공간  
+
+Namespaces - ResourceQuota / LimitRange : 네임스페이스 단위의 자원을 제한할 수 있다.  
+ConfigMap / Secret : Pod에 환경설정값 주입  
+
+
+## Controller 
+
 Controller : Pod를 관리하는 역할, 여러가지 컨트롤러가 있다.  
 
-Controller
-- Replication Controller, ReplicaSet : Pod의 갯수 조절, 죽으면 살리는 기능 
+Controller  
+- Replication Controller, ReplicaSet : Pod의 갯수 조절, 죽으면 살리는 기능   
 - Deployment : 새버전으로 Pod 업그레이드, 롤백 기능 
 - DaemonSet : 한 노드에 하나의 파드만 나오도록 
 - Cronjob : 특정 작업 주기적 실행 후 종료 하도록
