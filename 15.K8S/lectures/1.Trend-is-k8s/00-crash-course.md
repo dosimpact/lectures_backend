@@ -15,13 +15,17 @@
     - [kubectl config get-contexts](#kubectl-config-get-contexts)
     - [minikube service (webapp-service) --url](#minikube-service-webapp-service---url)
     - [minikube node](#minikube-node)
+  - [실습](#실습)
 - [전체 데모 프로젝트: MongoDB로 WebApp 배포](#전체-데모-프로젝트-mongodb로-webapp-배포)
   - [구성](#구성)
+  - [실습 가이드](#실습-가이드)
   - [ConfigMap : MongoDB Endpoint](#configmap--mongodb-endpoint)
   - [Secret : MongoDB User\& PW](#secret--mongodb-user-pw)
   - [Deployment + Service : MongoDB Application with internal service](#deployment--service--mongodb-application-with-internal-service)
+    - [Deployment yaml](#deployment-yaml)
+    - [Service yaml](#service-yaml)
 - [Deployment + Service : Web Application with external service](#deployment--service--web-application-with-external-service)
-- [](#)
+- [kubectl](#kubectl)
     - [kubectl get pod](#kubectl-get-pod)
 - [Kubernetes 클러스터와 상호 작용](#kubernetes-클러스터와-상호-작용)
     - [kubectl apply](#kubectl-apply)
@@ -34,7 +38,7 @@ https://www.youtube.com/watch?v=s_o8dwzRlu4
 # 개요
 
 컨테이너 오케스트레이션 툴의 필요성
-- 마이크로서비스로의 전환 트랜드
+- MSA(마이크로서비스로)의 전환 트랜드
 - 컨테이너 사용의 증가 
 
 k8s 이점
@@ -43,14 +47,14 @@ k8s 이점
 - 장애 극복 
 
 k8s의 아키텍쳐
-- 노드 = 각각의 컴퓨터
+- 노드 = k8s가 설치된 각각의 컴퓨터
 - 마스터 노드 = 컨트롤 플랜 ( 노드들을 관리하는 컴퓨터 )
-- 워커 노드 (파드가 배포되는 컴퓨터들 ) 
+- 워커 노드 (파드가 배포되는 컴퓨터들)
 - *kubelet : 각 노드에는 kubelet 프로세스가 필요.
 
 마스터 노드 구성
 
-1. API Server : 명령어를 API로 줄 수 있다. 
+1. API Server : API로 명령어를 줄 수 있다. 
 2. Controller Manage 
 3. Scheduler
 4. etcd = 백업 저장소
@@ -89,11 +93,11 @@ Ingress
 
 ConfigMap
 - mongo-db 등 URL 엔드포인트 설정 연결 파일
-- 내부적인 Pod IP가 변경되어도, External Config는 변경되지 않도록 한다.
+- 내부적인 Pod IP가 변경되어도, ConfigMap으로 매핑하여 대응한다.
 
 Secret
 - ConfigMap 과 비슷한 역할을 하지만, 암호화 되어야 하는 데이터에 사용
-- PWD,등
+- eg) PWD
 
 ## Volume
 
@@ -151,7 +155,7 @@ eg) nginx-deployment.yaml, nginx-service.yaml
 - 그래서 내 컴퓨터안에 Master + Worker 노드가 있는것 처럼 작동하도록 돕는것이 minikube 이다.  
 
 kubectl 명령어는 minikube 뿐 아니라 실제 Cloud Cluster 과 상호작용 할 수 있다.
-쉽게 생각해서 minikube라는 박스는 클러스터 라고 보면 되고, 그 안에 여러대의 노드(컴퓨터)가 있는 것이다.
+쉽게 생각해서 minikube로 클러스터 생성하고, 노드(컴퓨터)를 여러대 만들 수 있다.
 
 ## Minikube 설치 
 설치 & 시작 - https://minikube.sigs.k8s.io/docs/start/
@@ -171,7 +175,8 @@ minikue 안의 도커는, minikue를 설치하는 컴퓨터의 도커를 이용�
 ```
 >minikube start --driver docker
 
-(도커에서 미니큐브 노드로 접속하려면 외부에서 포트 바인딩을 해야 한다.)
+(도커에서 minikube 노드로 접속하려면 외부에서 포트 바인딩을 해야 한다.)
+(혹은 minikube service s-name --url 으로 포트바인딩이 필요하다. minikube 또한 컨테이너 이므로..   )
 >minikube start --driver docker --ports=30100:30100
 
 (미니큐브 노드의 상태 체크)
@@ -187,7 +192,7 @@ kubeconfig: Configured
 Halt the cluster:
 >minikube stop
 
-Delete all of the minikube clusters:
+(Delete all of the minikube clusters = 미니큐브 리셋)
 >minikube delete --all
 
 ```
@@ -212,8 +217,8 @@ minikube   Ready    control-plane   35m   v1.27.3
 ### kubectl config get-contexts
 
 ```
-여러개의 클러스터가 보이는 환경이라면, 아래 명령어로 확인
-minikube 설치, docker desktop 으로 k8s환경 설치 등
+minikube로 k8s설치 및  docker desktop 으로도 k8s환경 설치를 하면, k8s환경이 2개가 된다.
+이처럼 여러개의 클러스터가 보이는 환경이라면, 아래 명령어로 확인후 kubectl 대상의 클러스터를 변경할 수 있다.
 
 >kubectl config get-contexts
 CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
@@ -250,12 +255,37 @@ https://minikube.sigs.k8s.io/docs/commands/node/
 
 ```
 아래 명령어로 노드를 추가할 수 있다. 기본적으로 worker로 실행된다. minikube start로 마스터를 만들었기 때문에
-
+(만약 호스트환경에 포트가 겹치면 오류가 발생할 수 있다.)
 >minikube node add node-1
 >minikube node add node-2
->minikube node add node-3
+```
 
+## 실습
 
+```
+1개의 마스터 노드와 2개의 워커 노드를 만들어서 minikube 클러스터 환경을 구축하시오
+
+다음 명령어어로 성공 확인:
+>minikube status
+
+# 1개의 마스터 노드
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+# 2개의 워커 노드
+minikube-m02
+type: Worker
+host: Running
+kubelet: Running
+
+minikube-m03
+type: Worker
+host: Running
+kubelet: Running
 ```
 
 # 전체 데모 프로젝트: MongoDB로 WebApp 배포
@@ -263,14 +293,26 @@ https://minikube.sigs.k8s.io/docs/commands/node/
 ## 구성
 
 ConfigMap : MongoDB Endpoint
-Secret : MongoDB User& PW
+Secret : MongoDB User & PW
 
 Deployment + Service : MongoDB Application with internal service
 Deployment + Service : Web Application with external service
 
 
----
+## 실습 가이드
 
+mongo, webapp 2개의 컨테이너를 하나의 파드로 묶어서 배포 예정    
+베포 오브젝트  
+- configMap : 환경설정 파일 보관
+- Secret : 비밀키 보관 
+- Service : Pod안의 컨테이너로 경로 제공, 
+- Deployment : Pod 생성을 담당
+
+
+k8s 대시보드의 신규리소스 생성 버튼을 통해, yaml를 입력한다.  
+- 그러면 yaml의 kind = 오브젝트의 종류에 맞게 생성된다.
+
+---
 https://kubernetes.io/docs/concepts/configuration/configmap/#configmaps-and-pods
 
 ## ConfigMap : MongoDB Endpoint
@@ -284,6 +326,8 @@ metadata: # 메타데이타, 이름은 임의로 지정
 data:
   # 실제 환경설정 데이타, key-value값으로 넣으면 된다.
   mongo-url: mongo-service
+  # webapp 에서는 mongo-url이라는 값으로 접근한다. 그러면 mongo-service에 접근하게 된다.
+  # mongo-service에서는 mongo container로 접근하는 경로를 제공해준다.
 
 ```
 ## Secret : MongoDB User& PW
@@ -293,8 +337,9 @@ apiVersion: v1
 kind: Secret
 metadata: 
   name: mongo-secret
-type: Opaque
+type: Opaque # 일반적인 secret 방식
 data:
+  # value값은 base64로 인코딩 후 넣어야 한다.
   mongo-user: bW9uZ291c2Vy # echo -n mongouser | base64  bW9uZ291c2Vy
   mongo-password: bW9uZ29wYXNzd29yZA==  # echo -n mongopassword | base64
 ```
@@ -306,27 +351,38 @@ https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a
 https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service
 
 
-1. Pod안의 컨테이너 설정
-template은 또 nested 한 metadata, spec 필드를 가진다. 이 부분이 Pod의 실제 설정값이다.
-즉,  Deployment 타입 파일 안에는 여러개의 metadata, spec 를 가진 템플릿이 존재하고 이는 여러개의 컨테이너를 하나의 Pod으로 구성할 수 있음을 의미한다.
+1. `---` 대시 3개를 이용해서 여러개의 설정파일을 연달아 쓸 수 있다.   
+- 아래 예제에서는 Deployment 와 Service를 묶어서 하나의 yaml 파일을 만들것이다.  
 
-2. Label
 
-모든 k8s의 컴포넌트에 label을 달 수 있다. 이는 key-value 쌍으로 구성된다.
-replica 환경에서는 여러개의 Pod가 복제된다. 이때, replica set은 동일한 label을 가지게 된다.  
-각각의 Pod는 또한 서로다른 unique name을 가지게 된다.  
-- 따라서 template > metadata의 label은 필수 값이다. 반대로 다른 컴포넌트는 그렇지 않다.
+### Deployment yaml  
+
+1. Deployment yaml : Pod안의 다수의 컨테이너를 선언      
+- yaml 파일에 metadata, spec 필드를 볼 수 있다.   
+- spec의 template 필드 하위에 N개의 metadata, spec를 볼 수 있다.  
+- 즉, 이는 여러개의 컨테이너를 하나의 Pod으로 구성할 수 있음을 의미한다.  
+
+
+2. labels
+
+모든 k8s의 컴포넌트에 label을 달 수 있다. 이는 key-value 쌍으로 구성된다.  
+Replica 환경에서는 여러개의 Pod가 복제된다. 
+- common labels: 이때, Replica set은 동일한 label을 가지게 된다.  
+- unique name: 각각의 Pod는 또한 서로다른 unique name을 가지게 된다.  
+- *Deployment의 label은 필수 값이다.
+
 
 3. Label Selectors
-matchLabels 필드는 k8s가 여러 Pod안에 컨테이너를 선택할 수 있도록 선택자를 제공해준다.??
-
-4. `---` 대시 3개를 이용해서 여러개의 설정파일을 연달아 쓸 수 있다. 
+matchLabels 필드는 k8s가 여러 Pod안에 컨테이너를 선택할 수 있도록 선택자를 제공해준다.
 
 
+### Service yaml
 
-5. 서비스 selector 
+1. 서비스 selector 
 
-요청을 어떤 Pod에 넣어줄지 선택해줘야 한다. 이는 label 매칭으로 가능하다.
+TCP와 Port 번호를 가지고 서비스로 요청을 보낸다. 
+서비스는 받은 요청을 Pod로 넘겨줘야 한다.  
+- 이는 label 매칭으로 Pod선택이 가능하다.
 
 ```yml
 apiVersion: apps/v1
@@ -373,8 +429,6 @@ spec:
     - protocol: TCP
       port: 27017 # (8080 으로 접속하면, Pod의 특정 포트로 포워딩 시켜준다.)
       targetPort: 27017 # -p 8080:27017 와 같은 맥락
-
-
 ```
 
 
@@ -402,10 +456,10 @@ spec:
         app: webapp
     spec:
       containers:
-      - name: webappdb # 컨테이너
-        image: docker pull nanajanashia/k8s-demo-app:v1.0 # 컨테이너의 이미지
-        ports:
-        - containerPort: 3000 
+        - name: webappdb # 컨테이너
+          image: nanajanashia/k8s-demo-app:v1.0 # 컨테이너의 이미지
+          ports:
+            - containerPort: 3000
           env:
             - name: USER_NAME
               valueFrom:
@@ -439,7 +493,7 @@ spec:
 
 ```
 
-# 
+# kubectl
 
 ### kubectl get pod
 
