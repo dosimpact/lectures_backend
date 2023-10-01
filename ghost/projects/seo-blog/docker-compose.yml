@@ -1,0 +1,29 @@
+version: "3.1"
+
+networks:
+  ghost:
+    driver: bridge
+
+services:
+  ghost:
+    image: ghost:5.62
+    restart: always
+    container_name: ghost_5
+    ports:
+      - 3030:2368
+    volumes:
+      - ${GHOST_CONTENT_VOLUME_DIR}:/var/lib/ghost/content
+    environment:
+      # see https://ghost.org/docs/config/#configuration-options
+      database__client: mysql
+      database__connection__host: 14.52.200.171
+      database__connection__port: 8601
+      database__connection__user: admin
+      database__connection__password: dosimpact
+      database__connection__database: ghost2
+      # this url value is just an example, and is likely wrong for your environment!
+      url: https://wp.dodoco-coding.site
+      # contrary to the default mentioned in the linked documentation, this image defaults to NODE_ENV=production (so development mode needs to be explicitly specified if desired)
+      #NODE_ENV: development
+    networks:
+      - ghost

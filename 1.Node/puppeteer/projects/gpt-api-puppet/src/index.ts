@@ -22,11 +22,11 @@ const promptExample = `
 
 [지시사항]
 """
-전제 : 출력은 한글로 변역.
-2. [syntaxLogic] : 300자 정도의 단락의 글을 찾아줘. 논리적인 글을 필사하면서 문장 생성능력을 기르기 좋은걸 알려줘. 이는 매번 요청마다 다른 예시를 알려줘.
-3. [author] : 작가의 이름
-4. [name] : 글 제목
-5. [syntaxLogic] : 문단의 서술 패턴을 1줄로 표현해줘
+0. 출력은 한글로 변역.
+1. [content] : 300자 정도의 단락의 글을 찾아줘. 논리적인 글을 필사하면서 문장 생성능력을 기르기 좋은걸 알려줘. 이는 매번 요청마다 다른 예시를 알려줘.
+2. [author] : 작가의 이름
+3. [name] : 글 제목
+4. [syntaxLogic] : 문단의 서술 패턴을 1줄로 표현해줘
 """
 `;
 
@@ -43,11 +43,11 @@ const promptExample2 = `
 
 지시사항
 """
-전제 : 출력은 한글로 변역.
-2. [syntaxLogic] : 300자 정도의 단락의 글을 찾아줘. 논리적인 글을 필사하면서 문장 생성능력을 기르기 좋은걸 알려줘. 이는 매번 요청마다 다른 예시를 알려줘.
-3. [author] : 작가의 이름
-4. [name] : 글 제목
-5. [syntaxLogic] : 문단의 서술 패턴을 1줄로 표현해줘
+0. 출력은 한글로 변역.
+1. [content] : 300자 정도의 단락의 글을 찾아줘. 논리적인 글을 필사하면서 문장 생성능력을 기르기 좋은걸 알려줘. 이는 매번 요청마다 다른 예시를 알려줘.
+2. [author] : 작가의 이름
+3. [name] : 글 제목
+4. [syntaxLogic] : 문단의 서술 패턴을 1줄로 표현해줘
 """
 `;
 
@@ -62,13 +62,13 @@ const againPromptExample = `예시를 하나 더 알려줘`;
 const bootstrap = async () => {
   const app = express();
 
-  await PuppeteerServier.init({ headless: false });
+  await PuppeteerServier.init({ headless: "new" });
   await PuppeteerServier.openNewPage();
   await PuppeteerServier.gotoLoginPage();
   await PuppeteerServier.login();
   // await PuppeteerServier.testWorking();
   await PuppeteerServier.makeChatPageV2();
-  await PuppeteerServier.insertInfiniteEventV2();
+  await PuppeteerServier.insertInfiniteEventV2({ useGPT4: false });
 
   let cnt = 0;
   while (true) {

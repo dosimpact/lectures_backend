@@ -210,7 +210,7 @@ export const makeChatPageV2 = async () => {
   console.log("[info] done makeChatPageV2", await _chatPage.title());
 };
 
-export const insertInfiniteEventV2 = async () => {
+export const insertInfiniteEventV2 = async ({ useGPT4 = false }) => {
   // intervalEvent : Insert page down
   await chatPage.evaluate(() => {
     setInterval(() => {
@@ -292,9 +292,11 @@ export const insertInfiniteEventV2 = async () => {
   });
 
   // onetime Event : selector GTP4
-  await chatPage.evaluate(() => {
-    document.querySelectorAll("button[tabindex]")?.[1]?.click();
-  });
+  if (useGPT4) {
+    await chatPage.evaluate(() => {
+      document.querySelectorAll("button[tabindex]")?.[1]?.click();
+    });
+  }
   const el = chatPage.$(`div[tabindex="0"]`);
   console.log("[info] selected GPT : ", el?.innerText);
 
@@ -304,6 +306,7 @@ export const insertInfiniteEventV2 = async () => {
 export const gptAPIV2 = async ({ prompt }) => {
   // wait IDE status
   const typePromptWhenIdleStatus = async ({ prompt }) => {
+    const promptSelector = checkPoints.promptSelector;
     await sleep(3000);
     let cnt = 0;
     while (true) {
@@ -312,9 +315,17 @@ export const gptAPIV2 = async ({ prompt }) => {
         currentStatus
       );
       if (currentStatus === submitButtonStatus.IDLE) break;
-      await sleep(500);
+      if (currentStatus === submitButtonStatus.SUBMIT_READY) {
+        await chatPage.evaluate(() => {
+          document.querySelectorAll("textarea")[0].value = "";
+        });
+        await chatPage.type(promptSelector, " ");
+        const promptInput = await chatPage.$(promptSelector);
+        await promptInput.press("Backspace");
+      }
+      await sleep(1000);
       cnt += 1;
-      if (cnt >= 20)
+      if (cnt >= 30)
         throw Error(
           "[Error][timeout][typePromptWhenIdleStatus] IDLE status is not income"
         );
@@ -324,7 +335,6 @@ export const gptAPIV2 = async ({ prompt }) => {
       currentStatus
     );
     try {
-      const promptSelector = checkPoints.promptSelector;
       await chatPage.waitForSelector(promptSelector, { timeout: 3_000 });
       const promptInput = await chatPage.$(promptSelector);
 
