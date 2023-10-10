@@ -1,3 +1,8 @@
+- [FTP접속 이슈 - 권한 설정](#ftp접속-이슈---권한-설정)
+  - [ref](#ref)
+- [리다이렉션 이슈](#리다이렉션-이슈)
+  - [](#)
+- [ec2 ssh down issue](#ec2-ssh-down-issue)
 
 # FTP접속 이슈 - 권한 설정
 
@@ -27,3 +32,78 @@ ps -ef | grep apache2
 
 ## ref
 - https://devlog.jwgo.kr/2019/03/08/wordpress-ftp-setting-popup-on-ec2/
+
+
+# 리다이렉션 이슈
+
+- 그냥 파머링크를 안바꾸고 기본설정으로 쓰면된다.
+
+```
+#1
+cd /etc/apache2/sites-available/
+sudo nano 000-default.conf 
+
+    ...
+    <Directory /var/www/html/wordpress>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+sudo systemctl restart apache2
+```
+
+## 
+
+```
+sudo apt install php-gd -y
+sudo apt install php-mbstring -y
+
+sudo nano /etc/php/8.1/apache2/php.ini
+```
+# ec2 ssh down issue
+
+```
+한국시간기준 00시가되면 ssh가 갑자기죽는다 ?
+```
+
+```
+sudo apt-get update
+sudo apt-get install shellinabox
+sudo systemctl start shellinabox
+sudo systemctl enable shellinabox
+
+# 2. 설정 변경 http 허용
+
+# Should shellinaboxd start automatically
+SHELLINABOX_DAEMON_START=1
+
+# TCP port that shellinboxd's webserver listens on
+SHELLINABOX_PORT=4200
+
+# Parameters that are managed by the system and usually should not need
+# changing:
+# SHELLINABOX_DATADIR=/var/lib/shellinabox
+# SHELLINABOX_USER=shellinabox
+# SHELLINABOX_GROUP=shellinabox
+
+# Any optional arguments (e.g. extra service definitions).  Make sure
+# that that argument is quoted.
+#
+#   Beeps are disabled because of reports of the VLC plugin crashing
+#   Firefox on Linux/x86_64.
+# SHELLINABOX_ARGS="--no-beep"
++ SHELLINABOX_ARGS="--disable-ssl"
+
+# 3. ubuntu 계정의 password 설정
+
+sudo passwd ubuntu 
+---
+sudo passwd root
+sudo  su -
+passwd ubuntu
+
+# 4. inbound 설정
+
+
+```

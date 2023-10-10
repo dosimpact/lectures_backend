@@ -13,6 +13,9 @@ sudo apt install apache2 -y
 sudo apt install php libapache2-mod-php php-mysql -y
 sudo apt install mysql-server -y
 sudo apt install certbot python3-certbot-apache -y
+
+sudo apt install php-gd -y
+sudo apt install php-mbstring -y
 ---
 YouTube video link: https://youtu.be/8Uofkq718n8
 All the commands that are executed in the above youtube video are mentioned in this gist. 
@@ -50,41 +53,31 @@ CREATE DATABASE wp;
 GRANT ALL PRIVILEGES ON wp.* TO 'wp_user'@localhost;
 ---
 
-9. Download wordpress
+---
 cd /tmp
 wget https://wordpress.org/latest.tar.gz
-
-10. Unzip
 tar -xvf latest.tar.gz
-
-11. Move wordpress folder to apache document root
 sudo mv wordpress/ /var/www/html
+---
+
+9. Download wordpress & Unzip & Move wordpress folder to apache document root
+
+cd /tmp
+wget https://wordpress.org/latest.tar.gz
+tar -xvf latest.tar.gz
+sudo mv wordpress/ /var/www/html
+
 
 11.1 check wordpress error message, follow up with create wp-config.php
 - go http://3.11.111.11/wordpress/wp-admin/install.php?language=en_US
 - check message 
-  - wp / wp_user / Testpassword@123 / localhost / wp_
+- enter wp / wp_user / Testpassword@123 / localhost / wp_
 
 cd /var/www/html/wordpress
 sudo nano wp-config.php
 
 11.2 continue install 
 - 
-
-11.3 chnage apache2 config (DocumentRoot)
-
-cd /etc/apache2/sites-available/
-sudo nano 000-default.conf 
-chnage to > 
-  - DocumentRoot /var/www/html
-  + DocumentRoot /var/www/html/wordpress
-
-
-12. Command to restart/reload apache server
-sudo systemctl restart apache2
-OR
-sudo systemctl reload apache2
-
 
 12.1 buy domain and setting A Record 
 
@@ -98,35 +91,29 @@ sudo nano 000-default.conf
         #LogLevel info ssl:warn
        +ServerName your-domain.site
        +ServerAlias dev.your-domain.site ( 선택 추가 도메인 )
-        
         ...
 
 sudo systemctl restart apache2
 
-13. Install certbot
-sudo apt-get update
-sudo apt install certbot python3-certbot-apache -y
-
 13.1 go to dashboard
-http://3.11.111.11/wp-login.php?redirect_to=http%3A%2F%2Fdev.your-domain.site%2Fwp-admin%2F&reauth=1
-http://3.11.111.11/wp-login.php?redirect_to=http%3A%2F%2Fdev.your-domain.site%2Fwp-admin%2F&reauth=1
+http://3.11.111.11/wp-login.php
 
-
-13.2 change back to 
-chnage to > 
-  + DocumentRoot /var/www/html
-  - DocumentRoot /var/www/html/wordpress
-sudo systemctl restart apache2
 
 13.3 change setting > general 
-- wordpress address : http://dodoco-coding.site/
-- site address : http://dodoco-coding.site/
+- wordpress address : http://soft.your-domain.com
+- site address : http://soft.your-domain.com
 
-13.4 change back to 
+
+13.4 chnage apache2 config (DocumentRoot)
+
+cd /etc/apache2/sites-available/
+sudo nano 000-default.conf 
 chnage to > 
-  + DocumentRoot /var/www/html
-  - DocumentRoot /var/www/html/wordpress
+  - DocumentRoot /var/www/html
+  + DocumentRoot /var/www/html/wordpress
+
 sudo systemctl restart apache2
+
 
 14. Request and install ssl on your site with certbot
 sudo certbot --apache
@@ -136,3 +123,4 @@ sudo certbot --apache
 
 success https!
 ```
+
