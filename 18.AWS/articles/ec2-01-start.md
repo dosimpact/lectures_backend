@@ -41,6 +41,6 @@ chmod 400 wordpress_aws.pem
 ( -rw-r--r-- > -r-------- )
 
 ## 접속
-ssh -i "wordpress_aws.pem" ubuntu@ec2-3-34-134-58.ap-northeast-2.compute.amazonaws.com
+ssh -i "wordpress_aws.pem" ubuntu@ec2-3-34-134-xx.ap-northeast-2.compute.amazonaws.com
 
 
