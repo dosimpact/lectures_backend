@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CrawlingTargetEntity } from './crawlingTarget/entities/crawlingTarget.entity';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       ...(process.env.DATABASE_IS_SSL === '1' && {
         ssl: { rejectUnauthorized: process.env.DATABASE_NO_USE_CA === '1' },
       }),
+      entities: [CrawlingTargetEntity],
     }),
     HelloModule,
     UsersModule,
