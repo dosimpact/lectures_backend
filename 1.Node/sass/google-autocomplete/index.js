@@ -9,7 +9,7 @@ const autoComplete = ({ keyword }) =>
   });
 
 const bootstrap = async () => {
-  const result = await autoComplete({ keyword: "javascript 배열" });
+  const result = await autoComplete({ keyword: "javascript 객체" });
   console.log(result.join(","));
 };
 

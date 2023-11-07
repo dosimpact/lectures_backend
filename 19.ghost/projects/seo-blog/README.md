@@ -1,8 +1,66 @@
+- [ghost cms 설치](#ghost-cms-설치)
+  - [db setup](#db-setup)
+  - [dbeaver 접속](#dbeaver-접속)
+  - [nginx connect](#nginx-connect)
+
 # ghost cms 설치
 
 db와 ghost cms는 따로 2티어로 구분한다.
 - 서버 환경 : M1 Mac OSX 
 
+## db setup
+
+```
+# mysql 8 초기셋팅 퀵스타트
+
+## eg - database 를 만들고, admin 유저에게 권한을 할당.
+
+```sql
+docker exec -it mysql_8 mysql -uroot -p
+
+[ root 계정 생성 후 모든 권한 주기 ]
+// 모든곳에서 접속할 수 있는 root 유저 생성 및 모든 권한 주기
+-- create user 'root'@'%' IDENTIFIED BY 'user_name';
+-- GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+[ buffett 이라는 db를 만든다. ]
+create database buffett default character set utf8mb4;
+
+
+
+[ admin 유저 생성 후 권한 할당]
+CREATE USER 'admin'@'%' IDENTIFIED BY 'user_name';
+GRANT ALL PRIVILEGES ON buffett.* TO 'admin'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+[ 유저 확인 ]
+mysql> select user,host from mysql.user;
++------------------+-----------+
+| user             | host      |
++------------------+-----------+
+| admin            | %         |
+| mysql.infoschema | localhost |
+| mysql.session    | localhost |
+| mysql.sys        | localhost |
+| root             | localhost |
++------------------+-----------+
+
+[ 권한 확인 ]
+mysql> SHOW GRANTS FOR admin@'%';
++----------------------------------------------------------------------+
+| Grants for admin@%                                                   |
++----------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `admin`@`%`                                    |
+| GRANT ALL PRIVILEGES ON `buffett`.* TO `admin`@`%` WITH GRANT OPTION |
++----------------------------------------------------------------------+
+```
+
+## dbeaver 접속 
+
+이슈) Public key retrieval is not allowed
+- 해결: Driver Properties > allowPublicKeyRetrieval = True 설정
+
+```
 
 ## ghost docker run
 
@@ -125,6 +183,172 @@ brew services restart nginx
         #     allow all;
         # }
     }
+
+
+```
+
+
+```
+1. 하위 설정 파일 생성 (하위 서버 블록)
+
+# nginx.conf
+http {
+    ... 
+    include servers/*;
+    ..
+}
+
+
+
+2. 환경 설정 추가 
+
+- http 서버 블록 분기처리 추가
+- nginx는 서버 블록 환경 설정을 분리할 수 있다.
+- 하위 폴더에 아래의 내용 추가
+- 파일명 : server/domain.conf
+
+# ghost cms - domain.com
+server {
+    listen 80 ;
+    server_name domain.com www.domain.com;
+
+    access_log /Users/user_name/log/ghost_domain/access.log;
+    error_log /Users/user_name/log/ghost_domain/error.log;
+
+
+    location / {  # HTTP to HTTPS 리디렉션
+        # return 301 https://$host$request_uri;
+        proxy_pass http://127.0.0.1:3031/;
+    }
+}
+
+3. https 인증서 발급
+sudo certbot --nginx --nginx-server-root /opt/homebrew/etc/nginx -d domain.com
+
+
+Password:
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Requesting a certificate for domain.com
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/domain.com/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/domain.com/privkey.pem
+This certificate expires on 2024-01-11.
+These files will be updated when the certificate renews.
+
+Deploying certificate
+Successfully deployed certificate for domain.com to /opt/homebrew/etc/nginx/servers/domain.com.conf
+Congratulations! You have successfully enabled HTTPS on https://domain.com
+
+NEXT STEPS:
+- The certificate will need to be renewed before it expires. Certbot can automatically renew the certificate in the background, but you may need to take steps to enable that functionality. See https://certbot.org/renewal-setup for instructions.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+If you like Certbot, please consider supporting our work by:
+ * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+ * Donating to EFF:                    https://eff.org/donate-le
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+4. restart nginx 
+
+sudo chmod -R 755 /etc/letsencrypt
+nginx -t 
+brew services restart nginx
+
+5. change nginx conf
+
+
+    + client_max_body_size 100M;
+    location / { 
+        +proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        +proxy_set_header X-Forwarded-Host $host;
+        +proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:3031/;
+    }
+
+6. restart nginx 
+nginx -t 
+brew services restart nginx
+
+7.
+
+
+# ghost cms - domain.com
+server {
+    server_name domain.com;
+
+    access_log /Users/user_name/log/ghost_domain/access.log;
+    error_log /Users/user_name/log/ghost_domain/error.log;
+
+    client_max_body_size 100M;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/domain.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/domain.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    location / { 
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:3031/;
+    }
+
+}
+
+server {
+    if ($host = domain.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80 ;
+    server_name domain.com;
+    return 404; # managed by Certbot
+
+}
+
+---
+
+final conf
+
+
+# ghost cms - domain.com
+server {
+    server_name domain.com;
+
+    access_log /Users/user_name/log/ghost_domain/access.log;
+    error_log /Users/user_name/log/ghost_domain/error.log;
+
+    client_max_body_size 100M;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/domain.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/domain.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    location / { 
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:3031/;
+    }
+
+}
+
+server {
+    if ($host = domain.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80 ;
+    server_name domain.com;
+    return 404; # managed by Certbot
+
+}
 
 
 ```
