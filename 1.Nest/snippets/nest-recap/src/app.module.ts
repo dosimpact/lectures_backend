@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CrawlingTargetEntity } from './crawlingTarget/entities/crawlingTarget.entity';
+import { CrwalingTargetModule } from './crawlingTarget/crawlingTarget.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CrawlingTargetEntity } from './crawlingTarget/entities/crawlingTarget.e
     }),
     HelloModule,
     UsersModule,
+    CrwalingTargetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

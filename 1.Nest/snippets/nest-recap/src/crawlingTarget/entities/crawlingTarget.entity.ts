@@ -33,7 +33,7 @@ export class CrawlingTargetEntity {
   @Column({ type: 'varchar', length: 63, nullable: true })
   dirId: string; // 카테고리
 
-  @Index({ unique: true })
+  @Index()
   @Column({ type: 'varchar', length: 255, nullable: true })
   docId: number; // doc id
 
@@ -43,6 +43,18 @@ export class CrawlingTargetEntity {
   @Column({ type: 'boolean', default: false, nullable: true })
   isCrawled: boolean;
 
+  @Column({ type: 'text', nullable: true })
+  title: string;
+
+  @Column({ type: 'text', nullable: true })
+  contentHTML: string;
+
   @Column({ type: 'boolean', default: false, nullable: true })
   isRewrited: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  rewritedMarkdown: string;
+
+  @Column({ type: 'text', nullable: true })
+  rewritedHTML: string;
 }
