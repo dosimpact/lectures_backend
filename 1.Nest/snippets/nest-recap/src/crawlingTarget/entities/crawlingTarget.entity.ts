@@ -47,14 +47,29 @@ export class CrawlingTargetEntity {
   title: string;
 
   @Column({ type: 'text', nullable: true })
+  originalPrompot: string;
+
+  @Column({ type: 'text', nullable: true })
   contentHTML: string;
 
   @Column({ type: 'boolean', default: false, nullable: true })
   isRewrited: boolean;
 
   @Column({ type: 'text', nullable: true })
+  rewritedTitle: string;
+
+  @Column({ type: 'text', nullable: true })
   rewritedMarkdown: string;
 
   @Column({ type: 'text', nullable: true })
   rewritedHTML: string;
+
+  @Column({ type: 'boolean', default: false, nullable: true })
+  isConsumed: boolean;
+
+  @Column({ type: 'varchar', length: 15, nullable: true })
+  consumedTo: string; // 할당된 사람
+
+  @Column({ type: 'boolean', default: false, nullable: true })
+  isError: boolean;
 }

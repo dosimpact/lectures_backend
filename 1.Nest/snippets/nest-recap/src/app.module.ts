@@ -8,6 +8,7 @@ import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CrawlingTargetEntity } from './crawlingTarget/entities/crawlingTarget.entity';
 import { CrwalingTargetModule } from './crawlingTarget/crawlingTarget.module';
+import { GptLog } from './log-module/entities/gpt-log.entity';
 
 @Module({
   imports: [
@@ -21,17 +22,18 @@ import { CrwalingTargetModule } from './crawlingTarget/crawlingTarget.module';
         DATABASE_URL: Joi.string().required(),
         DATABASE_IS_SSL: Joi.number().required(),
         DATABASE_NO_USE_CA: Joi.number().required(),
+        GPT_AD: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
       synchronize: process.env.NODE_ENV === 'dev' ? true : false,
-      logging: true,
+      logging: false,
       ...(process.env.DATABASE_IS_SSL === '1' && {
         ssl: { rejectUnauthorized: process.env.DATABASE_NO_USE_CA === '1' },
       }),
-      entities: [CrawlingTargetEntity],
+      entities: [CrawlingTargetEntity, GptLog],
     }),
     HelloModule,
     UsersModule,
