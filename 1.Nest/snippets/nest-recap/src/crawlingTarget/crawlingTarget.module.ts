@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CrawlingTargetEntity } from './entities/crawlingTarget.entity';
 import { GptModule } from 'src/gpt-module/gpt.module';
 import { GptLog } from 'src/log-module/entities/gpt-log.entity';
+import { ConsumerService } from './consume.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { GptLog } from 'src/log-module/entities/gpt-log.entity';
     GptModule,
   ],
   controllers: [CrawlingContoller],
-  providers: [CrawlingService],
+  providers: [CrawlingService, ConsumerService],
   exports: [],
 })
 export class CrwalingTargetModule {}

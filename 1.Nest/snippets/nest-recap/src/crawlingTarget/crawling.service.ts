@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { CrawlingTargetEntity } from './entities/crawlingTarget.entity';
-import { Repository, Not } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import * as pretty from 'pretty';
 import { Inject, Injectable } from '@nestjs/common';
 import { GptService } from 'src/gpt-module/gpt.service';
@@ -148,11 +148,13 @@ export class CrawlingService {
     rewritedMarkdown: string,
     rewritedHTML: string,
     originalPrompot: string,
+    translatedTitle: string,
   ) {
     entity.isRewrited = true;
     entity.rewritedMarkdown = rewritedMarkdown;
     entity.rewritedHTML = rewritedHTML;
     entity.originalPrompot = originalPrompot;
+    entity.rewritedTitle = translatedTitle;
     return this.CrawlingTargetRepo.save(entity);
   }
 
@@ -164,14 +166,21 @@ export class CrawlingService {
     try {
       const start = performance.now();
 
-      const { contentHTML } = entity;
+      const { contentHTML, title } = entity;
       console.log(`[info] START - entity.id : ${entity.id} ${entity.title}`);
+
+      const { message: translatedTitle } =
+        await this.gptService.translateTitleToEn(title);
+      console.log('[info] translatedTitle : ', translatedTitle);
 
       const {
         total_tokens,
         message: rewritedPost,
         originalPrompot,
       } = await this.rewriteGpt(contentHTML);
+
+      // console.log('-->rewritedPost', rewritedPost);
+      // return rewritedPost;
 
       const convertor = new showdown.Converter();
       const rewritedHTML = convertor.makeHtml(rewritedPost);
@@ -181,6 +190,7 @@ export class CrawlingService {
         rewritedPost,
         rewritedHTML,
         originalPrompot,
+        translatedTitle,
       );
       const end = performance.now();
 
@@ -211,6 +221,33 @@ export class CrawlingService {
       await this.CrawlingTargetRepo.save(entity);
       return '';
     }
+  }
+
+  async backfillTitle() {
+    const entity = await this.CrawlingTargetRepo.findOne({
+      where: {
+        rewritedTitle: IsNull(),
+        isRewrited: true,
+        isError: false,
+      },
+      order: {
+        id: 'ASC',
+      },
+    });
+    if (!entity) return null;
+
+    const { title } = entity;
+    const { message: translatedTitle } =
+      await this.gptService.translateTitleToEn(title);
+
+    const { originalPrompot } = await this.gptService.rewriteGpt(title, {
+      dryRun: true,
+    });
+    console.log('[info] translatedTitle : ', translatedTitle);
+
+    entity.rewritedTitle = translatedTitle;
+    entity.originalPrompot = originalPrompot;
+    return this.CrawlingTargetRepo.save(entity);
   }
 
   // consume
