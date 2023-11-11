@@ -44,7 +44,8 @@ export const getTraslateTitleMessage = (title) => {
   return {
     role: 'user',
     content: `
-Print only the result of translating the sentence below into English.
+Please rewrite an SEO-optimized title that includes the keywords in the title below. 
+Translate it into English and print only the title.
 
 ${title}
 `,

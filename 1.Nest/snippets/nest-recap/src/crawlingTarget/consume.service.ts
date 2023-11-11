@@ -58,10 +58,10 @@ export class ConsumerService {
       `start - consume post ${entity.rewritedTitle} to ${consumedTo}`,
     );
 
-    const { title, rewritedMarkdown, rewritedHTML } = entity;
+    const { rewritedTitle, rewritedMarkdown, rewritedHTML } = entity;
 
-    await saveToFile(title, rewritedMarkdown, 'md', consumedTo); // download in local markdown
-    await saveToFile(title, rewritedHTML, 'html', consumedTo); // download in local html
+    await saveToFile(rewritedTitle, rewritedMarkdown, 'md', consumedTo); // download in local markdown
+    await saveToFile(rewritedTitle, rewritedHTML, 'html', consumedTo); // download in local html
 
     // flag up consumed
     entity.isConsumed = true;

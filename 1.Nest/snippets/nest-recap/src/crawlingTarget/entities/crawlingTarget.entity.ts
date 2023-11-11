@@ -70,6 +70,9 @@ export class CrawlingTargetEntity {
   @Column({ type: 'varchar', length: 15, nullable: true })
   consumedTo: string; // 할당된 사람
 
+  @Column({ nullable: true })
+  consumedPrice: number; // 가격
+
   @Column({ type: 'boolean', default: false, nullable: true })
   isError: boolean;
 }
