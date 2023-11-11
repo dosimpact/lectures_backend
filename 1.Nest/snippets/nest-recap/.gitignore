@@ -1,5 +1,8 @@
+static
 .env.local
 .env.dev
+.env.prod
+
 
 # compiled output
 /dist

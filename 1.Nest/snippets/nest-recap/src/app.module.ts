@@ -15,7 +15,7 @@ import { GptLog } from './log-module/entities/gpt-log.entity';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.prod',
-      ignoreEnvFile: process.env.NODE_ENV === 'production',
+      // ignoreEnvFile: process.env.NODE_ENV === 'production',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'production').default('dev'),
         PORT: Joi.number().default(3000),
